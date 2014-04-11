@@ -13,8 +13,33 @@ subroutine set_IC
             w(5,i,j)=0.d0
       enddo
    enddo
+   Chem_num(1,:,:)%moler_weight=4
+   Chem_num(2,:,:)%moler_weight=16
+   Chem_num(3,:,:)%moler_weight=11
+   Chem_num(4,:,:)%moler_weight=9
+   Chem_num(5,:,:)%moler_weight=15
    !$omp end parallel do
 end subroutine set_IC
+subroutine set_Chem
+use prmtr
+use variable
+implicit none
+double precision f_st
+!print *,w(5,:,:)
+f_st=
+
+Chem_num(1,:,:)%mass_rate=
+Chem_num(2,:,:)%mass_rate=
+Chem_num(3,:,:)%mass_rate=
+Chem_num(4,:,:)%mass_rate=
+Chem_num(5,:,:)%mass_rate=
+
+Chem_num(1,:,:)%rho=Chem_num(1,:,:)%mass_rate*w(1,:,:)
+Chem_num(2,:,:)%rho=Chem_num(2,:,:)%mass_rate*w(1,:,:)
+Chem_num(3,:,:)%rho=Chem_num(3,:,:)%mass_rate*w(1,:,:)
+Chem_num(4,:,:)%rho=Chem_num(4,:,:)%mass_rate*w(1,:,:)
+Chem_num(5,:,:)%rho=Chem_num(5,:,:)%mass_rate*w(1,:,:)
+end subroutine set_Chem
 subroutine set_BC
    use prmtr
    use variable
@@ -57,7 +82,7 @@ subroutine set_BC
       w(2,0  ,j)=100.d0
       w(3,0  ,j)=0.d0
       w(4,0  ,j)=w(4,1,j)
-      w(5,0  ,j)=0.d0
+      w(5,0  ,j)=0.5d0
    enddo
    !$omp end parallel do
    !Right

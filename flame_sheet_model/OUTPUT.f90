@@ -76,5 +76,6 @@ subroutine output
          write(15) t
          write(15) dt
       close(15)
+      print *,w(5,:,:)
    end if
 end subroutine output

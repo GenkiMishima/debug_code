@@ -37,8 +37,10 @@ module variable
    double precision, dimension(2,2, 0:ni  , 0:nj  ) :: geojacj
 
    type Chem_prmtr
-      double precision rho
+      integer moler_weight
+      double precision rho,mixture_rate
    end type Chem_prmtr
+   type (Chem_prmtr) Chem_num(nY,-1:ni,-1:nj)
 
    character*20 tmpstring
 end module variable

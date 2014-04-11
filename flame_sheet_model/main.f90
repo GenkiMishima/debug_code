@@ -11,7 +11,7 @@ use variable
    integer time_now, fl_num
    integer*4,external::access
 
-   call set_chem
+   call init_Chem
    call set_breadth
    !Restart{{{
    if(access("restart.bin","r") .eq. 0) then
@@ -64,6 +64,7 @@ use variable
       call calc_next_step_exp
       call set_w
       call set_BC
+      call set_Chem
       call output
       if(abs(1.d0/residual-1)<epsilon)then
          temp_int=1
