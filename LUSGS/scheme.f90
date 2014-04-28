@@ -409,7 +409,7 @@ integer i,j
    !$omp parallel do private(i)
    do j=1, nj
       do i=1, ni-1
-            call MUSCLlimiter(w(:,i-1,j), w(:,i,j), w(:,i+1,j), w_left(:,i,j), w_right(:,i,j))
+            call MUSCLlimiter(w(:,i-1,j), w(:,i,j), w(:,i+1,j), w_right(:,i,j), w_left(:,i,j))
       enddo
    enddo
    !$omp end parallel do
@@ -426,7 +426,7 @@ integer i,j
    !$omp parallel do private(i)
    do j=1, nj-1
       do i=1, ni
-            call MUSCLlimiter(w(:,i,j-1), w(:,i,j), w(:,i,j+1), w_down(:,i,j), w_up(:,i,j))
+            call MUSCLlimiter(w(:,i,j-1), w(:,i,j), w(:,i,j+1), w_up(:,i,j), w_down(:,i,j))
       enddo
    enddo
    !$omp end parallel do

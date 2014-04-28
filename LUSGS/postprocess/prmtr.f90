@@ -4,8 +4,8 @@ module prmtr
    !double precision, parameter :: gamma=1.4d0
    !double precision, parameter :: R_gas=287.1d0
    !Grid number
-   integer         , parameter :: ni=224
-   integer         , parameter :: nj=100
+   integer         , parameter :: ni=501
+   integer         , parameter :: nj=101
    !MUSCL INCREMENT
    double precision, parameter :: phi=1.d0
    double precision, parameter :: kappa=1.d0/3.d0

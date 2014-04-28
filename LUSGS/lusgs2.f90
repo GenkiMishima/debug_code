@@ -111,14 +111,27 @@ subroutine calc_next_step_imp
    use variable
    implicit none
    integer i,j,m,n
-   double precision, dimension(4,0:ni  ,0:nj  )::q_plime
+   double precision, dimension(4) :: temp_lu
+   double precision, dimension(4,0:ni  ,0:nj  )::q_plime,q_dplime
+   double precision, dimension(4,4,0:ni  ,0:nj  )::Z,inv_Z
+
+   do j=0,nj
+      do i=0,ni
+         do m=1,4
+            Z(m,m,i,j)=1d0+dt(i,j)/dsi(i,j)*(Ap(m,m,i,j)-Am(m,m,i,j))+dt(i,j)/dsj(i,j)*(Bp(m,m,i,j)-Bm(m,m,i,j))
+         end do
+      end do
+   end do
+   inv_z=z**-1
+   print *,z(:,:,10,20),inv_z(:,:,10,20)
+
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
-         RHS(:,i,j)=alpha(i,j)*dt(i,j)/area(i,j)*( dsj(i,j)*(X_Numerical(:,i  ,j  )-vis_i(:,i  ,j  ))&
-                                                  -dsj(i+1,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
-                                                  +dsi(i,j)*(Y_Numerical(:,i  ,j  )-vis_j(:,i  ,j  ))&
-                                                  -dsi(i,j+1)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
+         RHS(:,i,j)=dt(i,j)/area(i,j)*( dsj(i,j)*(X_Numerical(:,i  ,j  )-vis_i(:,i  ,j  ))&
+                                       -dsj(i,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
+                                       +dsi(i,j)*(Y_Numerical(:,i  ,j  )-vis_j(:,i  ,j  ))&
+                                       -dsi(i,j)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
          !print *,RHS(:,i,j)
       end do
    end do
@@ -129,12 +142,23 @@ subroutine calc_next_step_imp
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
-         q_plime(:,i,j)=RHS(:,i,j)&
-                       +alpha(i,j)*dt(i,j)/dsi(i,j)*matmul(Ap(:,:,i-1,j),q_plime(:,i-1,j))&
-                       +alpha(i,j)*dt(i,j)/dsj(i,j)*matmul(Bp(:,:,i,j-1),q_plime(:,i,j-1))
+         temp_lu=RHS(:,i,j)&
+                +alpha(i,j)*dt(i,j)/dsi(i,j)*matmul(Ap(:,:,i-1,j),q_plime(:,i-1,j))&
+                +alpha(i,j)*dt(i,j)/dsj(i,j)*matmul(Bp(:,:,i,j-1),q_plime(:,i,j-1))
+
+         q_plime(:,i,j)=matmul(inv_Z(:,:,i,j),temp_lu(:))
+                        
+                        
       end do
    end do
    !$omp end parallel do
+
+   do j=1,nj-1
+      do i=1,ni-1
+         q_dplime(:,i,j)=matmul(Z(:,:,i,j),q_plime(:,i,j))
+      end do
+   end do
+                        
    q_imp(:,ni,:)=0.d0
    q_imp(:,:,nj)=0.d0
    !$omp parallel do private(i,m,temp0)
@@ -142,9 +166,12 @@ subroutine calc_next_step_imp
       n=nj-j
       do i=1,ni-1
          m=ni-i
-         q_imp(:,m,n)=q_plime(:,m,n)&
-                     -alpha(m,n)*dt(i,j)/dsi(m,n)*matmul(Ap(:,:,m+1,n),q_imp(:,m+1,n))&
-                     -alpha(m,n)*dt(i,j)/dsj(m,n)*matmul(Bp(:,:,m,n+1),q_imp(:,m,n+1))
+         temp_lu=q_dplime(:,m,n)&
+              -alpha(m,n)*dt(i,j)/dsi(m,n)*matmul(Ap(:,:,m+1,n),q_imp(:,m+1,n))&
+              -alpha(m,n)*dt(i,j)/dsj(m,n)*matmul(Bp(:,:,m,n+1),q_imp(:,m,n+1))
+         q_imp(:,m,n)=matmul(inv_Z(:,:,i,j),temp_lu(:))
+                      
+                      
       end do
    end do
    !$omp end parallel do

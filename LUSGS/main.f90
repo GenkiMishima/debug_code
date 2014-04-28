@@ -33,6 +33,7 @@ use variable
    end if
    !}}}
    call set_geojac
+   call set_vnc_dsc
    call set_conservative_variable_vector
    call set_BC
    call set_dt
@@ -56,7 +57,7 @@ use variable
    !main loop
    open(34,file='residual.d')
    do time=time_now, time_max
-   !do time=1,2000
+   !do time=1,2
       t=t+dt(1,1)
       !ww=w
       !qq=q

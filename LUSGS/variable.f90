@@ -40,6 +40,12 @@ module variable
    double precision, dimension(2,   0:ni+1, 0:nj+1) :: nvj
    double precision, dimension(2,2, 0:ni  , 0:nj  ) :: geojaci
    double precision, dimension(2,2, 0:ni  , 0:nj  ) :: geojacj
+   double precision vnci(1:2,1:ni,1:nj)
+   double precision vncj(1:2,1:ni,1:nj)
+   double precision dsci(1:ni,1:nj)
+   double precision dscj(1:ni,1:nj)
+
+   
 
    character*20 tmpstring
 end module variable

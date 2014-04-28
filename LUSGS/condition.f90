@@ -47,14 +47,14 @@ subroutine set_BC
       w(1,0  ,j)=1.d0
       w(2,0  ,j)=100.d0
       w(3,0  ,j)=0.d0
-      w(4,0  ,j)=w(4,1,j)
+      w(4,0  ,j)=1.d5!w(4,1,j)
    enddo
    !$omp end parallel do
    !Right
    !$omp parallel do shared(w), private(j)
    do j = 0, nj
          w(:,ni  ,j  )= w(:,ni-1,j)
-         w(4,ni  ,j  )= 1.d5
+         !w(4,ni  ,j  )= 1.d5
    enddo
    !$omp end parallel do
 end subroutine set_BC

@@ -3,7 +3,7 @@ subroutine make_grid
    use variable
    implicit none
    integer i,j
-   open(55, file='../../mishima/grid/ideal_bl.x')
+   open(55, file='../../grid/ideal_bl.x')
    read(55,*) temp0
    read(55,*) temp1,temp2,temp3
    if(temp0 .ne. 1)then
@@ -224,3 +224,33 @@ subroutine set_breadth
    !close(46)
    !close(47)
 end subroutine set_breadth
+subroutine set_vnc_dsc
+   use prmtr
+   use variable
+   implicit none
+   double precision,dimension(2)::a,b,c,d
+   integer i,j
+
+   do j=1,nj
+      do i=1,ni
+         a(1)=(x(i  ,j  )+x(i+1,j  ))*0.5d0
+         a(2)=(r(i  ,j  )+r(i+1,j  ))*0.5d0
+         b(1)=(x(i+1,j  )+x(i+1,j+1))*0.5d0
+         b(2)=(r(i+1,j  )+r(i+1,j+1))*0.5d0
+         c(1)=(x(i  ,j+1)+x(i+1,j+1))*0.5d0
+         c(2)=(r(i  ,j+1)+r(i+1,j+1))*0.5d0
+         d(1)=(x(i  ,j  )+x(i  ,j+1))*0.5d0
+         d(2)=(r(i  ,j  )+r(i  ,j+1))*0.5d0
+         dsci(i,j)=sqrt((c(1)-a(1))**2+(c(2)-a(2))**2)
+         dscj(i,j)=sqrt((b(1)-d(1))**2+(b(2)-d(2))**2)
+         vnci(1,i,j)=(b(1)-d(1))/dscj(i,j)
+         vnci(2,i,j)=(b(2)-d(2))/dscj(i,j)
+         vncj(1,i,j)=(c(1)-a(1))/dsci(i,j)
+         vncj(2,i,j)=(c(2)-a(2))/dsci(i,j)
+
+         !!only when cylindrical
+         !dsci(i,j)=dsci(i,j)*(c(2)+a(2))*0.5d0
+         !dscj(i,j)=dscj(i,j)*(b(2)+d(2))*0.5d0
+      end do
+   end do
+end subroutine set_vnc_dsc
