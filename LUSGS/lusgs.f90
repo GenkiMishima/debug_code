@@ -9,8 +9,8 @@ subroutine set_jacobian
    double precision, dimension(4,4) ::  A, B, Atilde, Btilde
    !$omp parallel do private(i,m,rho,u,v,p,E,H,c,&
    !$omp                     A,B)
-   do j=0,nj
-      do i=0,ni
+   do j=1,nj-1
+      do i=1,ni-1
          rho= w(1,i,j)
          u  = w(2,i,j)
          v  = w(3,i,j)
@@ -116,9 +116,9 @@ subroutine calc_next_step_imp
    do j=1,nj-1
       do i=1,ni-1
          RHS(:,i,j)=alpha(i,j)*dt(i,j)/area(i,j)*( dsj(i,j)*(X_Numerical(:,i  ,j  )-vis_i(:,i  ,j  ))&
-                                                  -dsj(i+1,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
+                                                  -dsj(i,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
                                                   +dsi(i,j)*(Y_Numerical(:,i  ,j  )-vis_j(:,i  ,j  ))&
-                                                  -dsi(i,j+1)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
+                                                  -dsi(i,j)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
          !print *,RHS(:,i,j)
       end do
    end do

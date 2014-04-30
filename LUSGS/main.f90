@@ -63,7 +63,7 @@ use variable
       !qq=q
       call set_dt
       call SLAU_FLUX
-      call set_viscous
+      !call set_viscous
       call set_jacobian
       call calc_next_step_imp
       !call calc_next_step_exp

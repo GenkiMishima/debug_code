@@ -6,10 +6,10 @@ subroutine set_IC
    !$omp parallel do shared(w,j), private(i)
    do j = 0, nj
       do i = 0, ni
-            w(1,i,j)=1.d0
-            w(2,i,j)=100.d0
+            w(1,i,j)=5.d0
+            w(2,i,j)=1000.d0
             w(3,i,j)=0.d0
-            w(4,i,j)=1.d5
+            w(4,i,j)=5.d6
       enddo
    enddo
    !$omp end parallel do
@@ -24,30 +24,30 @@ subroutine set_BC
    !$omp parallel do shared(w), private(i)
    do i = 1, ni-1
       !Bottom
-      if(i<55)then
+      !if(i<55)then
          w(:,i,0   )= w(:,i,1   )
          w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
          w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
-      else
-         w(:,i,0   )= w(:,i,1   )
-         w(2,i,0   )=-w(2,i,1   )
-         w(3,i,0   )=-w(3,i,1   )
-      end if
+      !else
+      !   w(:,i,0   )= w(:,i,1   )
+      !   w(2,i,0   )=-w(2,i,1   )
+      !   w(3,i,0   )=-w(3,i,1   )
+      !end if
 
       !Ceiling
       w(:,i,nj  )= w(:,i,nj-1)
-      w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
-      w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
+      !w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
+      !w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
    enddo                  
    !$omp end parallel do
    !Left Right Boundary
    !Left
    !$omp parallel do shared(w), private(j)
    do j = 0, nj
-      w(1,0  ,j)=1.d0
-      w(2,0  ,j)=100.d0
+      w(1,0  ,j)=5.d0
+      w(2,0  ,j)=1000.d0
       w(3,0  ,j)=0.d0
-      w(4,0  ,j)=1.d5!w(4,1,j)
+      w(4,0  ,j)=5.d6!w(4,1,j)
    enddo
    !$omp end parallel do
    !Right
