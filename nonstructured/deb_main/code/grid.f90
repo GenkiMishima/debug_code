@@ -4,17 +4,18 @@
 !
 !**************************************
 subroutine grid
+use glbl_prmtr
 use form_format
-use prmtr
+use grid_prmtr
 implicit none
 integer i,j,k
 integer temp_int, temp_int1,temp_int2,temp_int3,temp_int4, bc
-double precision temp, temp_x, temp_r,temp1, temp2,temp3,delta_x,delta_r
+double precision temp, temp_x, temp_r,temp1,temp2,temp3,temp4,delta_x,delta_r
 double precision node_temp1,node_temp2,node_temp3
 integer, dimension(element_num) ::ele_type
 
    !Read Nodes{{{
-   open(55, file='data/test1.msh')
+   open(55, file='grid/test1.msh')
    !Header
    read(55,*) moji
    read(55,*) 
@@ -44,7 +45,7 @@ integer, dimension(element_num) ::ele_type
    !}}} 
 
    !Read elements{{{
-   open(55, file='data/test1.msh')
+   open(55, file='grid/test1.msh')
    !Header{{{
    read(55,*) 
    read(55,*) 
@@ -82,9 +83,14 @@ integer, dimension(element_num) ::ele_type
          !print *, 'make',boundary_counter
          !lines(boundary_counter)%Val%line_number=boundary_counter
          lines(boundary_counter)%Val%bc=bc
-         lines(boundary_counter)%Val%c1=0
+         lines(boundary_counter)%Val%c1=1d6+bc
          lines(boundary_counter)%Val%centx=abs(nodes(node_temp1)%x+nodes(node_temp2)%x)*temp2
          lines(boundary_counter)%Val%centr=abs(nodes(node_temp1)%r+nodes(node_temp2)%r)*temp2
+         delta_x=abs(nodes(node_temp1)%x-nodes(node_temp2)%x)
+         delta_r=abs(nodes(node_temp1)%r-nodes(node_temp2)%r)
+         temp1=sqrt(delta_x**2+delta_r**2)
+         lines(boundary_counter)%Val%nv(1)= delta_r/temp1
+         lines(boundary_counter)%Val%nv(2)=-delta_x/temp1
       !if(boundary_counter==9)then
       !do j = 1,boundary_counter
       !   write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
@@ -116,88 +122,6 @@ integer, dimension(element_num) ::ele_type
          cells(cell_counter)%Val%grar=(nodes(node_temp1)%r+nodes(node_temp2)%r&
                                  +nodes(node_temp3)%r)*temp3
 
-         !{{{
-         !!!Middle point of Node1,2
-         !temp_x=abs(nodes(node_temp1)%x+nodes(node_temp2)%x)*temp2
-         !temp_r=abs(nodes(node_temp1)%r+nodes(node_temp2)%r)*temp2
-         !temp_int1=int(temp_x*10d7)
-         !temp_int2=int(temp_r*10d7)
-         !!Ckeck that what elements face to this lines
-         !do j = 1,boundary_counter
-         !   temp_int3=int(lines(j)%Val%centx*10d7)
-         !   temp_int4=int(lines(j)%Val%centr*10d7)
-         !   temp_int=0
-         !   if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
-         !      temp_int=1
-         !      lines(j)%Val%c2=cell_counter
-         !      !print *, 'exist', cell_counter, lines(j)%c1
-         !      exit
-         !   end if
-         !end do
-         !if(temp_int==0)then
-         !   boundary_counter=boundary_counter+1
-         !   !print *, 'make',boundary_counter
-         !   lines(j)%Val%line_number=boundary_counter
-         !   lines(j)%Val%c1=cell_counter
-         !   lines(j)%Val%centx=temp_x
-         !   lines(j)%Val%centr=temp_r
-         !!write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
-         !end if
-
-         !!!Middle point of Node2,3
-         !temp_x=abs(nodes(node_temp2)%x+nodes(node_temp3)%x)*temp2
-         !temp_r=abs(nodes(node_temp2)%r+nodes(node_temp3)%r)*temp2
-         !temp_int1=int(temp_x*10d7)
-         !temp_int2=int(temp_r*10d7)
-         !!Ckeck that what elements face to this lines
-         !do j = 1,boundary_counter
-         !   temp_int3=int(lines(j)%Val%centx*10d7)
-         !   temp_int4=int(lines(j)%Val%centr*10d7)
-         !   temp_int=0
-         !   if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
-         !      temp_int=1
-         !      lines(j)%Val%c2=cell_counter
-         !      !print *, 'exist', cell_counter, lines(j)%c1
-         !      exit
-         !   end if
-         !end do
-         !if(temp_int==0)then
-         !   boundary_counter=boundary_counter+1
-         !   !print *, 'make',boundary_counter
-         !   lines(j)%Val%line_number=boundary_counter
-         !   lines(j)%Val%c1=cell_counter
-         !   lines(j)%Val%centx=temp_x
-         !   lines(j)%Val%centr=temp_r
-         !!write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
-         !end if
-
-         !!!Middle point of Node3,1
-         !temp_x=abs(nodes(node_temp3)%x+nodes(node_temp1)%x)*temp2
-         !temp_r=abs(nodes(node_temp3)%r+nodes(node_temp1)%r)*temp2
-         !temp_int1=int(temp_x*10d7)
-         !temp_int2=int(temp_r*10d7)
-         !!Ckeck that what elements face to this lines
-         !do j = 1,boundary_counter
-         !   temp_int3=int(lines(j)%Val%centx*10d7)
-         !   temp_int4=int(lines(j)%Val%centr*10d7)
-         !   temp_int=0
-         !   if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
-         !      temp_int=1
-         !      lines(j)%Val%c2=cell_counter
-         !      !print *, 'exist', cell_counter, lines(j)%c1
-         !      exit
-         !   end if
-         !end do
-         !if(temp_int==0)then
-         !   boundary_counter=boundary_counter+1
-         !   !print *, 'make',boundary_counter
-         !   lines(j)%Val%line_number=boundary_counter
-         !   lines(j)%Val%c1=cell_counter
-         !   lines(j)%Val%centx=temp_x
-         !   lines(j)%Val%centr=temp_r
-         !!write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
-         !end if}}}
-
          cell_counter=cell_counter+1
       !}}}
       !Read else{{{
@@ -223,17 +147,18 @@ integer, dimension(element_num) ::ele_type
 
 !Cell
 temp1=0d0
-do i=1,element_num
+do i=1,cell_counter-1
    temp1=cells(i)%Val%grar
    do j = 1,i
-      if(cells(j)%Val%grar<temp1)then
-         temp_cell=cells(i)%Val
-         cells(i)%Val=cells(j)%Val
-         cells(j)%Val=temp_cell
-         do k = j,i
-            temp_cell=cells(k)%Val
-            cells(k)%Val=cells(j)%Val
-            cells(j)%Val=temp_cell
+      if(cells(j)%Val%grar>temp1)then
+         temp_cell1=cells(j)%Val
+         cells(j)%Val=cells(i)%Val
+         !cells(i)%Val=temp_cell
+         do k = j+1,i
+            temp_cell2=cells(k)%Val
+            cells(k)%Val=temp_cell1
+            !cells(k-1)%Val=temp_cell
+            temp_cell1=temp_cell2
 
             !cells(k)%Val%cell_number=cells(k)%Val%cell_number+1
          end do
@@ -244,11 +169,119 @@ do i=1,element_num
       end if
    end do
 end do
-print *, i
 
 temp2=1d0/2d0
 temp3=1d0/3d0
-do i=1,element_num
+cells(:)%Val%counter=0
+!do i=1,cell_counter-1
+!   node_temp1=cells(i)%Val%t_l1
+!   node_temp2=cells(i)%Val%t_l2
+!   node_temp3=cells(i)%Val%t_l3
+!
+!   !!Middle point of Node1,2
+!   delta_x=abs(nodes(node_temp1)%x-nodes(node_temp2)%x)
+!   delta_r=abs(nodes(node_temp1)%r-nodes(node_temp2)%r)
+!   temp1=sqrt(delta_x**2+delta_r**2)
+!   temp_x=abs(nodes(node_temp1)%x+nodes(node_temp2)%x)*temp2
+!   temp_r=abs(nodes(node_temp1)%r+nodes(node_temp2)%r)*temp2
+!   temp_int1=int(temp_x*10d7)
+!   temp_int2=int(temp_r*10d7)
+!   !Ckeck that what elements face to this lines
+!   do j = 1,boundary_counter
+!      temp_int3=int(lines(j)%Val%centx*10d7)
+!      temp_int4=int(lines(j)%Val%centr*10d7)
+!      temp_int=0
+!      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+!         temp_int=1
+!         lines(j)%Val%c2=i
+!         cells(i)%Val%counter=cells(i)%Val%counter+1
+!         cells(i)%Val%t_b(cells(i)%Val%counter)=j
+!         !print *, 'exist', cell_counter, lines(j)%c1
+!         exit
+!      end if
+!   end do
+!   if(temp_int==0)then
+!      boundary_counter=boundary_counter+1
+!      !print *, 'make',boundary_counter
+!      !lines(j)%Val%line_number=boundary_counter
+!      lines(j)%Val%c1=i
+!      lines(j)%Val%centx=temp_x
+!      lines(j)%Val%centr=temp_r
+!      lines(j)%Val%nv(1)= delta_r/temp1
+!      lines(j)%Val%nv(2)=-delta_x/temp1
+!   !write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
+!   end if
+!
+!   !!Middle point of Node2,3
+!   delta_x=abs(nodes(node_temp2)%x-nodes(node_temp3)%x)
+!   delta_r=abs(nodes(node_temp2)%r-nodes(node_temp3)%r)
+!   temp1=sqrt(delta_x**2+delta_r**2)
+!   temp_x=abs(nodes(node_temp2)%x+nodes(node_temp3)%x)*temp2
+!   temp_r=abs(nodes(node_temp2)%r+nodes(node_temp3)%r)*temp2
+!   temp_int1=int(temp_x*10d7)
+!   temp_int2=int(temp_r*10d7)
+!   !Ckeck that what elements face to this lines
+!   do j = 1,boundary_counter
+!      temp_int3=int(lines(j)%Val%centx*10d7)
+!      temp_int4=int(lines(j)%Val%centr*10d7)
+!      temp_int=0
+!      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+!         temp_int=1
+!         lines(j)%Val%c2=i
+!         cells(i)%Val%counter=cells(i)%Val%counter+1
+!         cells(i)%Val%t_b(cells(i)%Val%counter)=j
+!         !print *, 'exist', cell_counter, lines(j)%c1
+!         exit
+!      end if
+!   end do
+!   if(temp_int==0)then
+!      boundary_counter=boundary_counter+1
+!      !print *, 'make',boundary_counter
+!      !lines(j)%Val%line_number=boundary_counter
+!      lines(j)%Val%c1=i
+!      lines(j)%Val%centx=temp_x
+!      lines(j)%Val%centr=temp_r
+!      lines(j)%Val%nv(1)= delta_r/temp1
+!      lines(j)%Val%nv(2)=-delta_x/temp1
+!   !write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
+!   end if
+!
+!   !!Middle point of Node3,1
+!   delta_x=abs(nodes(node_temp3)%x-nodes(node_temp1)%x)
+!   delta_r=abs(nodes(node_temp3)%r-nodes(node_temp1)%r)
+!   temp1=sqrt(delta_x**2+delta_r**2)
+!   temp_x=abs(nodes(node_temp3)%x+nodes(node_temp1)%x)*temp2
+!   temp_r=abs(nodes(node_temp3)%r+nodes(node_temp1)%r)*temp2
+!   temp_int1=int(temp_x*10d7)
+!   temp_int2=int(temp_r*10d7)
+!   !Ckeck that what elements face to this lines
+!   do j = 1,boundary_counter
+!      temp_int3=int(lines(j)%Val%centx*10d7)
+!      temp_int4=int(lines(j)%Val%centr*10d7)
+!      temp_int=0
+!      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+!         temp_int=1
+!         lines(j)%Val%c2=i
+!         cells(i)%Val%counter=cells(i)%Val%counter+1
+!         cells(i)%Val%t_b(cells(i)%Val%counter)=j
+!         !print *, 'exist', cell_counter, lines(j)%c1
+!         exit
+!      end if
+!   end do
+!   if(temp_int==0)then
+!      boundary_counter=boundary_counter+1
+!      !print *, 'make',boundary_counter
+!      !lines(j)%Val%line_number=boundary_counter
+!      lines(j)%Val%c1=i
+!      lines(j)%Val%centx=temp_x
+!      lines(j)%Val%centr=temp_r
+!      lines(j)%Val%nv(1)= delta_r/temp1
+!      lines(j)%Val%nv(2)=-delta_x/temp1
+!   !write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
+!   end if
+!end do
+!print *,cell(24)%
+do i=1,cell_counter-1
    node_temp1=cells(i)%Val%t_l1
    node_temp2=cells(i)%Val%t_l2
    node_temp3=cells(i)%Val%t_l3
@@ -259,29 +292,30 @@ do i=1,element_num
    temp1=sqrt(delta_x**2+delta_r**2)
    temp_x=abs(nodes(node_temp1)%x+nodes(node_temp2)%x)*temp2
    temp_r=abs(nodes(node_temp1)%r+nodes(node_temp2)%r)*temp2
-   temp_int1=int(temp_x*10d7)
-   temp_int2=int(temp_r*10d7)
    !Ckeck that what elements face to this lines
    do j = 1,boundary_counter
-      temp_int3=int(lines(j)%Val%centx*10d7)
-      temp_int4=int(lines(j)%Val%centr*10d7)
+      temp3=lines(j)%Val%centx
+      temp4=lines(j)%Val%centr
       temp_int=0
-      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+      temp_int1=cells(i)%Val%counter
+      if(temp_x.eq.temp3.and.temp_r.eq.temp4) then
          temp_int=1
-         lines(j)%Val%c2=cell_counter
+         lines(j)%Val%c2=i
+         cells(i)%Val%counter=cells(i)%Val%counter+1
+         cells(i)%Val%t_b(cells(i)%Val%counter)=j
          !print *, 'exist', cell_counter, lines(j)%c1
          exit
       end if
    end do
    if(temp_int==0)then
       boundary_counter=boundary_counter+1
-      !print *, 'make',boundary_counter
       !lines(j)%Val%line_number=boundary_counter
-      lines(j)%Val%c1=cell_counter
+      lines(j)%Val%c1=i
       lines(j)%Val%centx=temp_x
       lines(j)%Val%centr=temp_r
       lines(j)%Val%nv(1)= delta_r/temp1
       lines(j)%Val%nv(2)=-delta_x/temp1
+      print *, 'make',boundary_counter
    !write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
    end if
 
@@ -291,25 +325,26 @@ do i=1,element_num
    temp1=sqrt(delta_x**2+delta_r**2)
    temp_x=abs(nodes(node_temp2)%x+nodes(node_temp3)%x)*temp2
    temp_r=abs(nodes(node_temp2)%r+nodes(node_temp3)%r)*temp2
-   temp_int1=int(temp_x*10d7)
-   temp_int2=int(temp_r*10d7)
    !Ckeck that what elements face to this lines
    do j = 1,boundary_counter
-      temp_int3=int(lines(j)%Val%centx*10d7)
-      temp_int4=int(lines(j)%Val%centr*10d7)
+      temp3=lines(j)%Val%centx
+      temp4=lines(j)%Val%centr
       temp_int=0
-      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+      temp_int1=cells(i)%Val%counter
+      if(temp_x.eq.temp3.and.temp_r.eq.temp4) then
          temp_int=1
-         lines(j)%Val%c2=cell_counter
+         lines(j)%Val%c2=i
+         cells(i)%Val%counter=cells(i)%Val%counter+1
+         cells(i)%Val%t_b(cells(i)%Val%counter)=j
          !print *, 'exist', cell_counter, lines(j)%c1
          exit
       end if
    end do
    if(temp_int==0)then
       boundary_counter=boundary_counter+1
-      !print *, 'make',boundary_counter
+      print *, 'make',boundary_counter
       !lines(j)%Val%line_number=boundary_counter
-      lines(j)%Val%c1=cell_counter
+      lines(j)%Val%c1=i
       lines(j)%Val%centx=temp_x
       lines(j)%Val%centr=temp_r
       lines(j)%Val%nv(1)= delta_r/temp1
@@ -323,37 +358,39 @@ do i=1,element_num
    temp1=sqrt(delta_x**2+delta_r**2)
    temp_x=abs(nodes(node_temp3)%x+nodes(node_temp1)%x)*temp2
    temp_r=abs(nodes(node_temp3)%r+nodes(node_temp1)%r)*temp2
-   temp_int1=int(temp_x*10d7)
-   temp_int2=int(temp_r*10d7)
    !Ckeck that what elements face to this lines
    do j = 1,boundary_counter
-      temp_int3=int(lines(j)%Val%centx*10d7)
-      temp_int4=int(lines(j)%Val%centr*10d7)
+      temp3=lines(j)%Val%centx
+      temp4=lines(j)%Val%centr
       temp_int=0
-      if(temp_int1.eq.temp_int3.and.temp_int2.eq.temp_int4) then
+      temp_int1=cells(i)%Val%counter
+      if(temp_x.eq.temp3.and.temp_r.eq.temp4) then
          temp_int=1
-         lines(j)%Val%c2=cell_counter
+         lines(j)%Val%c2=i
+         cells(i)%Val%counter=cells(i)%Val%counter+1
+         cells(i)%Val%t_b(cells(i)%Val%counter)=j
          !print *, 'exist', cell_counter, lines(j)%c1
          exit
       end if
    end do
    if(temp_int==0)then
       boundary_counter=boundary_counter+1
-      !print *, 'make',boundary_counter
+      print *, 'make',boundary_counter
       !lines(j)%Val%line_number=boundary_counter
-      lines(j)%Val%c1=cell_counter
+      lines(j)%Val%c1=i
       lines(j)%Val%centx=temp_x
       lines(j)%Val%centr=temp_r
       lines(j)%Val%nv(1)= delta_r/temp1
       lines(j)%Val%nv(2)=-delta_x/temp1
    !write(*,'(i3,i3,i3,i3)') lines(j)%line_number,lines(j)%bc,lines(j)%c1,lines(j)%c2
    end if
+   !print *,i
 end do
-
-
-
-do i=1,element_num
-   cells(i)%Val%value1=dble(i)*2d0
+do i=1,boundary_counter
+   print *,i,lines(i)%Val%c1,lines(i)%Val%c2
+end do
+do i=1,cell_counter-1
+   print *,i,cells(i)%Val%grax,cells(i)%Val%grar
 end do
 
 end subroutine grid

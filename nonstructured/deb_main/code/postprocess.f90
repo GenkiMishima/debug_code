@@ -1,6 +1,7 @@
 program main
+use glbl_prmtr
 use form_format
-use prmtr
+use grid_prmtr
 implicit none
 integer i,j,time
 integer temp_int, temp_int1,temp_int2,temp_int3,temp_int4, bc
@@ -17,8 +18,9 @@ double precision,dimension(1:node_num)::rho_mat,u_mat,v_mat,p_mat,temp_mat
 end program main
 
 subroutine vtk_grid
+use glbl_prmtr
 use form_format
-use prmtr
+use grid_prmtr
    implicit none
    integer i,j
    write(66,'(a26)') '# vtk DataFile Version 2.0'
@@ -45,7 +47,9 @@ use prmtr
    write(66,'(a10,i10)') 'POINT_DATA ',int(node_num)
 end subroutine vtk_grid
 subroutine vtk_scalar(arr,title)
-use prmtr
+use glbl_prmtr
+use form_format
+use grid_prmtr
    implicit none
    double precision, dimension(1:node_num), intent(in)::arr
    character(*),intent(in)::title
@@ -74,8 +78,9 @@ end subroutine vtk_scalar
 !   write(66,*)
 !end subroutine vtk_vector
 subroutine set_out_format(rho,u,v,p)
-use prmtr
+use glbl_prmtr
 use form_format
+use grid_prmtr
 implicit none
 integer i,j
 integer temp_int1
@@ -85,13 +90,12 @@ double precision,dimension(1:node_num)::rho,u,v,p
 !double precision,dimension(1:element_num)::cells
 do i= 1,node_num
    temp1=0d0
-   do j=1,nodes(i)%node_num_count
+   do j=1,nodes(i)%node_num_count-1
       temp_int1=nodes(i)%cell_num(j)
-      temp1=temp1+cells(temp_int1)%Val%value1
+      temp1=temp1+cells(temp_int1)%Val%w(4)
+      if(temp_int1.eq.0) nodes(i)%node_bound_count=nodes(i)%node_bound_count+1
    end do
-   p(i)=temp1/dble(nodes(i)%node_num_count)
+   p(i)=temp1/dble(nodes(i)%node_num_count-nodes(i)%node_bound_count)
    !print *,nodes(i)%value1,temp1
 end do
-
-
 end subroutine set_out_format
