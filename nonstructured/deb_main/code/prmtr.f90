@@ -16,7 +16,7 @@ implicit none
 type cell_comp
    integer counter
    integer t_l1,t_l2,t_l3
-   integer t_b(2)
+   integer t_b(3)
    double precision grax,grar
    double precision w(4), q(4)
 end type cell_comp
@@ -27,6 +27,7 @@ type line_comp
    !integer line_number
    integer bc
    integer(4) c1,c2
+   integer(4) n1,n2
    double precision centx,centr
    double precision ds
    double precision nv(2)
