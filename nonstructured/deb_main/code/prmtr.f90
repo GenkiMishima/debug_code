@@ -7,8 +7,9 @@ integer, parameter ::element_num = 34
 double precision, parameter ::gamma=1.4d0
 double precision, parameter ::CFL=0.01d0
 integer line_counter,cell_counter,boundary_counter
-double precision t,dt
-character moji*30
+double precision t,dt,time
+character moji*30, tmpstring*20
+integer, parameter ::out_time=1
 
 end module glbl_prmtr
 module form_format
@@ -17,7 +18,7 @@ type cell_comp
    integer counter
    integer t_l1,t_l2,t_l3
    integer t_b(3)
-   double precision grax,grar
+   double precision grax,grar,area
    double precision w(4), q(4)
 end type cell_comp
 type Cell
@@ -30,6 +31,7 @@ type line_comp
    integer(4) n1,n2
    double precision centx,centr
    double precision ds
+   double precision Flux(4)
    double precision nv(2)
 end type line_comp
 type Line

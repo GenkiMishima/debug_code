@@ -64,19 +64,19 @@ use grid_prmtr
    print *,"ok"
 !   open(34,file='residual.d')
 !   do time=time_now, time_max
-!   !do time=1,2
-!      t=t+dt(1,1)
-!      !ww=w
-!      !qq=q
-!      call set_dt
-!      call SLAU_FLUX
-!      !call set_viscous
-!      !call set_jacobian
-!      !call calc_next_step_imp
-!      call calc_next_step_exp
-!      call set_w
-!      call set_BC
-!      call output
+   do time=1,2
+      t=t+dt
+      !ww=w
+      !qq=q
+      call set_dt
+      call SLAU_FLUX
+      !call set_viscous
+      !call set_jacobian
+      !call calc_next_step_imp
+      call calc_next_step_exp
+      call set_w
+      call set_BC
+      call output
 !      if(abs(1.d0/residual-1)<epsilon)then
 !         temp_int=1
 !         call output
@@ -85,6 +85,6 @@ use grid_prmtr
 !         call exit(2)
 !      end if
 !      write(34,*) time,residual
-!   end do
+   end do
 !   close(34)
 end program main

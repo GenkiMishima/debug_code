@@ -458,6 +458,18 @@ do i=1,cell_counter-1
    end do
 
 end do
+do i=1,cell_counter-1
+   temp_int1=cells(i)%Val%t_l1
+   temp_int2=cells(i)%Val%t_l2
+   temp_int3=cells(i)%Val%t_l3
+
+   temp1=nodes(temp_int1)%x*(nodes(temp_int2)%r-nodes(temp_int3)%r)
+   temp2=nodes(temp_int2)%x*(nodes(temp_int3)%r-nodes(temp_int1)%r)
+   temp3=nodes(temp_int3)%x*(nodes(temp_int1)%r-nodes(temp_int2)%r)
+
+   cells(i)%Val%area=0.5d0*abs(temp1+temp2+temp3)
+
+end do
 
 
 !do i=1,boundary_counter
