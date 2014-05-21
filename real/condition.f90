@@ -20,7 +20,7 @@ subroutine set_material
    use material
    use variable
    double precision temp1,temp2,temp_P
-   double precision real_a,real_b,R_gas
+   double precision real_a,real_b,R_gas,T_wall,T_inf
    double precision P0
    R_gas = gas_specific
    
@@ -36,11 +36,16 @@ subroutine set_material
                     +temp2**2))**(1.d0/3.d0))+(temp2+dsqrt(4.d0*temp1**3+temp2**2))**(1.d0/3.d0)&
                     /(3.d0*2.d0**(1.d0/3.d0)*real_a*real_b)+1.d0/(3.d0*real_b)
          P0 = 11.d6
+         T_wall = 150.d0
+         T_inf = 600.d0
+         nonW(5,i,j) = dsqrt((R_gas*(temp_P+real_a*w(1,i,j)**2)+Cv_st*(temp_P+real_a*w(1,i,j)**2&
+                       *(-1.d0+2.d0*real_b*w(1,i,j))))/(Cv_st*w(1,i,j)*(1.d0-real_b*w(1,i,j))))
+         temp2=(R_gas**(temp_P+real_a*w(1,i,j)**2)+Cv_st*(temp_P+real_a*w(1,i,j)**2*(-1.d0+2.d0*real_b*w(1,i,j))))
       end do
    end do
    
-   temp_out1=!para_a
-   temp_out2=!para_b
+   temp_out1=nonW(5,30,50)
+   temp_out2=w(1,30,50)
 end subroutine set_material
 subroutine set_BC
    use prmtr

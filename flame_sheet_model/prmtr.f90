@@ -19,7 +19,7 @@ module prmtr
    integer, parameter :: step_backward=103
    integer, parameter :: step_height  =181
    !OUTPOT TIME
-   integer, parameter :: out_time = 5000
+   integer, parameter :: out_time = 50
    integer, parameter :: time_max = 500000000
    !RESIDUAL
    double precision, parameter :: epsilon= 1d-2

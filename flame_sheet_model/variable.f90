@@ -38,9 +38,10 @@ module variable
 
    type Chem_prmtr
       integer moler_weight
-      double precision rho,mixture_rate
+      double precision rho,mass_rate,Y!mass_fraction
    end type Chem_prmtr
    type (Chem_prmtr) Chem_num(nY,-1:ni,-1:nj)
+   double precision temp_chem_mat (-1:ni,-1:nj)
 
    character*20 tmpstring
 end module variable

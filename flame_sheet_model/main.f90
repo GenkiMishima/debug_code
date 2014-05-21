@@ -11,7 +11,6 @@ use variable
    integer time_now, fl_num
    integer*4,external::access
 
-   call init_Chem
    call set_breadth
    !Restart{{{
    if(access("restart.bin","r") .eq. 0) then

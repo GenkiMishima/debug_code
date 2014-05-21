@@ -13,32 +13,38 @@ subroutine set_IC
             w(5,i,j)=0.d0
       enddo
    enddo
-   Chem_num(1,:,:)%moler_weight=4
-   Chem_num(2,:,:)%moler_weight=16
-   Chem_num(3,:,:)%moler_weight=11
-   Chem_num(4,:,:)%moler_weight=9
-   Chem_num(5,:,:)%moler_weight=15
    !$omp end parallel do
+   Chem_num(1,:,:)%mass_rate=4         !CH4
+   Chem_num(2,:,:)%mass_rate=16        !O2
+   Chem_num(3,:,:)%mass_rate=11        !CO2
+   Chem_num(4,:,:)%mass_rate=9         !H2O
+   Chem_num(5,:,:)%mass_rate=15        !N2
+
+   Chem_num(1,:,:)%Y=0d0
+   Chem_num(2,:,:)%Y=1d0
+   Chem_num(3,:,:)%Y=0d0
+   Chem_num(4,:,:)%Y=0d0
+   Chem_num(5,:,:)%Y=0d0
 end subroutine set_IC
 subroutine set_Chem
 use prmtr
 use variable
 implicit none
+integer i,j,k
 double precision f_st
 !print *,w(5,:,:)
-f_st=
+!f_st=
 
-Chem_num(1,:,:)%mass_rate=
-Chem_num(2,:,:)%mass_rate=
-Chem_num(3,:,:)%mass_rate=
-Chem_num(4,:,:)%mass_rate=
-Chem_num(5,:,:)%mass_rate=
+temp_chem_mat(:,:)=0d0
+do k = 1,nY
+   temp_chem_mat(:,:)=Chem_num(k,:,:)%mass_rate+temp_chem_mat(:,:)
+end do
+Chem_num(1,:,:)%rho=Chem_num(1,:,:)%mass_rate/temp_chem_mat(:,:)!*w(1,:,:)
+Chem_num(2,:,:)%rho=Chem_num(2,:,:)%mass_rate/temp_chem_mat(:,:)!*w(1,:,:)
+Chem_num(3,:,:)%rho=Chem_num(3,:,:)%mass_rate/temp_chem_mat(:,:)!*w(1,:,:)
+Chem_num(4,:,:)%rho=Chem_num(4,:,:)%mass_rate/temp_chem_mat(:,:)!*w(1,:,:)
+Chem_num(5,:,:)%rho=Chem_num(5,:,:)%mass_rate/temp_chem_mat(:,:)!*w(1,:,:)
 
-Chem_num(1,:,:)%rho=Chem_num(1,:,:)%mass_rate*w(1,:,:)
-Chem_num(2,:,:)%rho=Chem_num(2,:,:)%mass_rate*w(1,:,:)
-Chem_num(3,:,:)%rho=Chem_num(3,:,:)%mass_rate*w(1,:,:)
-Chem_num(4,:,:)%rho=Chem_num(4,:,:)%mass_rate*w(1,:,:)
-Chem_num(5,:,:)%rho=Chem_num(5,:,:)%mass_rate*w(1,:,:)
 end subroutine set_Chem
 subroutine set_BC
    use prmtr
@@ -50,28 +56,22 @@ subroutine set_BC
    !$omp parallel do shared(w), private(i)
    do i = 1, ni-1
       !Bottom
-      if(i<55.and.i>105)then
-         w(:,i,0   )= w(:,i,1   )
-         w(4,i,0   )= 1d5
-      else
+      if(i<50)then
          w(:,i,0   )= w(:,i,1   )
          w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
          w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
-
-         !w(:,i,0   )= w(:,i,1   )
-         !w(2,i,0   )=-w(2,i,1   )
-         !w(3,i,0   )=-w(3,i,1   )
+      else
+         w(:,i,0   )= w(:,i,1   )
+         w(2,i,0   )=-w(2,i,1   )
+         w(3,i,0   )=-w(3,i,1   )
+         Chem_num(:,i,0)%Y=0d0
+         Chem_num(1,i,0)%Y=1d0
       end if
 
       !Ceiling
-      if(i<55.and.i>105)then
-         w(:,i,nj   )= w(:,i,nj-1)
-         w(4,i,nj   )= 1d5
-      else
-         w(:,i,nj  )= w(:,i,nj-1)
-         w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
-         w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
-      end if
+      w(:,i,nj   )= w(:,i,nj-1)
+      w(4,i,nj   )= 1d5
+      Chem_num(:,i,nj)%Y=Chem_num(:,i,nj-1)%Y
    enddo                  
    !$omp end parallel do
    !Left Right Boundary
@@ -83,6 +83,8 @@ subroutine set_BC
       w(3,0  ,j)=0.d0
       w(4,0  ,j)=w(4,1,j)
       w(5,0  ,j)=0.5d0
+      Chem_num(:,0,j)%Y=0d0
+      Chem_num(2,0,j)%Y=1d0
    enddo
    !$omp end parallel do
    !Right
@@ -90,6 +92,7 @@ subroutine set_BC
    do j = 0, nj
       w(:,ni,j   )= w(:,ni-1,j)
       w(4,ni,j   )= 1d5
+      Chem_num(:,ni,j)%Y=Chem_num(:,ni-1,j)%Y
    enddo
    !$omp end parallel do
 end subroutine set_BC

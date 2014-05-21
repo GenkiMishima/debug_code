@@ -76,6 +76,8 @@ subroutine output
          write(15) t
          write(15) dt
       close(15)
-      print *,w(5,:,:)
+      print *,Chem_num(:,20,20)%rho
+      print *,Chem_num(1,20,20)%rho+Chem_num(2,20,20)%rho+Chem_num(3,20,20)%rho+Chem_num(4,20,20)%rho+Chem_num(5,20,20)%rho,w(1,20,20)
+      !print *,w(5,:,:)
    end if
 end subroutine output

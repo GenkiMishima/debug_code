@@ -112,6 +112,9 @@ subroutine calc_next_step_imp
    implicit none
    integer i,j,m,n
    double precision, dimension(4,0:ni  ,0:nj  )::q_plime
+   temp0=10000.d0
+   temp_residual2=temp_residual1
+   temp1=0.d0
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
@@ -157,5 +160,12 @@ subroutine calc_next_step_imp
       end do
    end do
    !$omp end parallel do
+   do j=1,nj-1
+      do i=1,ni-1
+         temp_residual1=temp_residual1+q(4,i,j) 
+      enddo
+   enddo
+   !residual
+   residual=abs(temp_residual1-temp_residual2)
 end subroutine calc_next_step_imp
 

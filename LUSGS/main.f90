@@ -70,14 +70,15 @@ use variable
       call set_w
       call set_BC
       call output
-      if(abs(1.d0/residual-1)<epsilon)then
+      temp9=abs(1.d0/(residual-1.d0))
+      if(temp9<epsilon)then
          temp_int=1
          call output
          write(34,*) t,residual
          write(*,*) 'convergence'
          call exit(2)
       end if
-      write(34,*) time,residual
+      write(34,*) time,temp9
    end do
    close(34)
 end program main

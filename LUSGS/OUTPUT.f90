@@ -69,7 +69,8 @@ subroutine output
       close(14)
       close(15)
       close(16)
-      write(*, *) tmpString, t, residual
+      temp9=abs(1.d0/(residual-1.d-50))
+      write(*, *) tmpString, t, temp9
       open(15,file="restart.bin",form="unformatted")
          write(15) w
          write(15) time
