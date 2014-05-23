@@ -3,6 +3,8 @@ subroutine output
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+   double precision, dimension(   1:ni  , 1:nj  ) :: Mach_number
    if(time==1.or.(mod(time,out_time)== 0).or.temp_int==1) then
       !$omp parallel do private(i)
       do j = 1, nj
@@ -43,6 +45,8 @@ subroutine output
       open(14, file='data/Mach_'//trim(tmpstring)//'.d')
       open(15, file='data/Vectorx_'//trim(tmpstring)//'.d')
       open(16, file='data/Vectorr_'//trim(tmpstring)//'.d')
+      open(17, file='data/Turb_ene_'//trim(tmpstring)//'.d')
+      open(18, file='data/dissipation'//trim(tmpstring)//'.d')
 !      !$omp parallel do private(i)
       do j=1,nj
          do i=1,ni
@@ -53,6 +57,8 @@ subroutine output
             write(14, *) Mach_number(i,j)
             write(15, *) nvj(1,i,j)
             write(16, *) nvj(2,i,j)
+            write(17, *) wp(5,i,j)
+            write(18, *) wp(6,i,j)
             !y(1,j) = dy*0.5d0+dble(j-1)*dy
             !write(10, *) y(1,j), w(1,50,j)
             !write(11, *) y(1,j), w(2,50,j)
@@ -69,6 +75,8 @@ subroutine output
       close(14)
       close(15)
       close(16)
+      close(17)
+      close(18)
       write(*, *) tmpString, t, residual
       open(15,file="restart.bin",form="unformatted")
          write(15) w

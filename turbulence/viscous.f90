@@ -58,9 +58,10 @@ subroutine set_viscous
 use prmtr
 use variable
 implicit none
-double precision, dimension(4) :: Ev, Fv
-double precision, dimension(4) :: dwdxi,dwdata,dwdx,dwdr
+double precision, dimension(6) :: Ev, Fv
+double precision, dimension(6) :: dwdxi,dwdata,dwdx,dwdr
 double precision, dimension(0:ni+1,0:nj+1) :: Tdeg 
+double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
 double precision k_heat
 double precision dudxi,dudeta
 double precision dudx,dudr
@@ -68,15 +69,25 @@ double precision dvdxi,dvdeta
 double precision dvdx,dvdr
 double precision dTdxi,dTdeta
 double precision dTdx,dTdr
-double precision rho,u,v,Temper
+double precision dTurenedxi,dTurenedeta
+double precision dTurenedx ,dTurenedr
+double precision ddissipdxi,ddissipdeta
+double precision ddissipdx ,ddissipdr
+double precision rho,u,v,Temper,Turene,dissip
 double precision Rgas
 double precision tau_xx,tau_xr,tau_rr
 double precision qx,qr
 double precision divu
 
-double precision D
+double precision D,nu,Rt,nu_t,u_eta,non_y,f_mu,f_eta,R_stress1,R_stress2,R_stress3
 double precision, parameter::Sc=1d0
 double precision, parameter::Prentl=7d-1
+double precision, parameter::length=1d-3
+double precision, parameter::C_mu      = 0.09d0
+double precision, parameter::C_eta1    = 1.5d0
+double precision, parameter::C_eta2    = 1.9d0
+double precision, parameter::sigma_k   = 1.4d0
+double precision, parameter::sigma_eta = 1.4d0
 double precision temp10, temp11, temp12, temp13
 
 integer i,j,k
@@ -103,27 +114,49 @@ do j=1,nj-1
       rho    = (w(1 ,i,j)+w(1 ,i-1,j))*0.5d0
       u      = (w(2 ,i,j)+w(2 ,i-1,j))*0.5d0
       v      = (w(3 ,i,j)+w(3 ,i-1,j))*0.5d0
+      Turene = (w(5 ,i,j)+w(5 ,i-1,j))*0.5d0
+      dissip = (w(6 ,i,j)+w(6 ,i-1,j))*0.5d0
       Temper = (Tdeg(i,j)+Tdeg(i-1,j))*0.5d0 !total energy
 
-      k_heat=mu*gamma/(gamma-1d0)*gas_specific/Prentl               !k from mu by Prandtl number
+      nu    = mu/rho
+      k_heat= mu*gamma/(gamma-1d0)*gas_specific/Prentl               !k from mu by Prandtl number
+      u_eta = (nu*dissip)**(1d0/4d0)
+      Rt    = Turene**2/(nu*dissip)
+      non_y = u_eta*length/nu
 
-      dudxi  =  w(2,i,j) -w(2,i-1,j)
-      dvdxi  =  w(3,i,j) -w(3,i-1,j)
-      dTdxi  = Tdeg(i,j)-Tdeg(i-1,j)
+      f_mu  = (1d0-exp(-non_y/14d0 ))**2*(1d0+(5d0/(Rt**(3d0/4d0)))*exp(-(Rt/200d0)**2))
+      f_eta = (1d0-exp(-non_y/3.1d0))**2*(1d0-                0.3d0*exp(-(Rt/6.5d0)**2))
 
-      dudeta =  (w(2,i-1,j+1) +w(2,i,j+1)&
-                -w(2,i-1,j-1) -w(2,i,j-1))*0.25d0
-      dvdeta =  (w(3,i-1,j+1) +w(3,i,j+1)&
-                -w(3,i-1,j-1) -w(3,i,j-1))*0.25d0
-      dTdeta = (Tdeg(i-1,j+1)+Tdeg(i,j+1)&
-               -Tdeg(i-1,j-1)-Tdeg(i,j-1))*0.25d0
+      nu_t     = C_mu*f_mu*Turene**2/dissip
 
-      dudx=dudxi*geojaci(1,1,i,j)+dudeta*geojaci(2,1,i,j)
-      dvdx=dvdxi*geojaci(1,1,i,j)+dvdeta*geojaci(2,1,i,j)
-      dTdx=dTdxi*geojaci(1,1,i,j)+dTdeta*geojaci(2,1,i,j)
-      dudr=dudxi*geojaci(1,2,i,j)+dudeta*geojaci(2,2,i,j)
-      dvdr=dvdxi*geojaci(1,2,i,j)+dvdeta*geojaci(2,2,i,j)
-      dTdr=dTdxi*geojaci(1,2,i,j)+dTdeta*geojaci(2,2,i,j)
+      dudxi       =  w(2,i,j) -w(2,i-1,j)
+      dvdxi       =  w(3,i,j) -w(3,i-1,j)
+      dTdxi       = Tdeg(i,j)-Tdeg(i-1,j)
+      dTurenedxi  =  w(5,i,j) -w(5,i-1,j)
+      ddissipdxi  =  w(6,i,j) -w(6,i-1,j)
+
+      dudeta      =  (w(2,i-1,j+1) +w(2,i,j+1)&
+                     -w(2,i-1,j-1) -w(2,i,j-1))*0.25d0
+      dvdeta      =  (w(3,i-1,j+1) +w(3,i,j+1)&
+                     -w(3,i-1,j-1) -w(3,i,j-1))*0.25d0
+      dTdeta      = (Tdeg(i-1,j+1)+Tdeg(i,j+1)&
+                    -Tdeg(i-1,j-1)-Tdeg(i,j-1))*0.25d0
+      dTurenedeta =  (w(5,i-1,j+1) +w(5,i,j+1)&
+                     -w(5,i-1,j-1) -w(5,i,j-1))*0.25d0
+      ddissipdeta =  (w(6,i-1,j+1) +w(6,i,j+1)&
+                     -w(6,i-1,j-1) -w(6,i,j-1))*0.25d0
+
+      dudx     =     dudxi*geojaci(1,1,i,j)+     dudeta*geojaci(2,1,i,j)
+      dvdx     =     dvdxi*geojaci(1,1,i,j)+     dvdeta*geojaci(2,1,i,j)
+      dTdx     =     dTdxi*geojaci(1,1,i,j)+     dTdeta*geojaci(2,1,i,j)
+      dTurenedx=dTurenedxi*geojaci(1,1,i,j)+dTurenedeta*geojaci(2,1,i,j)
+      ddissipdx=ddissipdxi*geojaci(1,1,i,j)+ddissipdeta*geojaci(2,1,i,j)
+
+      dudr     =     dudxi*geojaci(1,2,i,j)+     dudeta*geojaci(2,2,i,j)
+      dvdr     =     dvdxi*geojaci(1,2,i,j)+     dvdeta*geojaci(2,2,i,j)
+      dTdr     =     dTdxi*geojaci(1,2,i,j)+     dTdeta*geojaci(2,2,i,j)
+      dTurenedr=dTurenedxi*geojaci(1,2,i,j)+dTurenedeta*geojaci(2,2,i,j)
+      ddissipdr=ddissipdxi*geojaci(1,2,i,j)+ddissipdeta*geojaci(2,2,i,j)
 
       divu=dudx+dvdr
 
@@ -132,18 +165,43 @@ do j=1,nj-1
       tau_xr= mu*(dvdx+dudr)
       qx  = -k_heat*dTdx
       qr  = -k_heat*dTdr
+   
+      temp3 = rho*nu_t
+      !temp4 = 
+      
+      R_stress1 =-2d0/3d0*temp3*divu+2d0*mu*dudx-2d0/3d0*Turene
+      R_stress2 =-2d0/3d0*temp3*divu+2d0*mu*dvdr-2d0/3d0*Turene
+      R_stress3 = temp3*(dudr+dvdx)
+
+      if(i==1.and.j==1)then
+         print *,nu,k_heat,u_eta
+         print *,Rt,non_y,f_mu
+         print *,f_eta,nu_t
+         print *,dissip,Turene
+      end if
+
+
+      temp0 = nu+nu_t/sigma_k
+      temp1 = nu+nu_t/sigma_eta
+      temp2 = C_eta1*dissip/Turene
 
       Ev(1)=0d0
-      Ev(2)=tau_xx
-      Ev(3)=tau_xr
+      Ev(2)=tau_xx+R_stress1
+      Ev(3)=tau_xr+R_stress3
       Ev(4)=u*tau_xx+v*tau_xr-qx
+      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress1*u+R_stress3*v)
+      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress1*u+R_stress3*v)
 
       Fv(1)=0d0
-      Fv(2)=tau_xr
-      Fv(3)=tau_rr
+      Fv(2)=tau_xr+R_stress3
+      Fv(3)=tau_rr+R_stress2
       Fv(4)=u*tau_xr+v*tau_rr-qr
+      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress2*v+R_stress3*u)
+      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress2*v+R_stress3*u)
 
       vis_i(:,i,j)=Ev*nvi(1,i,j)+Fv*nvi(2,i,j)
+      Sterm(5,i,j)=-Turene
+      Sterm(6,i,j)=-C_eta2*f_eta*Turene**2/dissip
    end do
 end do
 !$omp end parallel do
@@ -159,30 +217,56 @@ end do
 !$omp             Ev,Fv,i)
 do j=1,nj
    do i=1,ni-1
+
       rho    = (w(1    ,i,j-1)+w(1    ,i,j))*0.5d0
       u      = (w(2    ,i,j-1)+w(2    ,i,j))*0.5d0
       v      = (w(3    ,i,j-1)+w(3    ,i,j))*0.5d0
+      Turene = (w(5    ,i,j-1)+w(5    ,i,j))*0.5d0
+      dissip = (w(6    ,i,j-1)+w(6    ,i,j))*0.5d0
       Temper =    (Tdeg(i,j-1)+   Tdeg(i,j))*0.5d0
 
-      k_heat=mu*gamma/(gamma-1d0)*gas_specific/Prentl               !k from mu by Prandtl number
+      nu    = mu/rho
+      k_heat= mu*gamma/(gamma-1d0)*gas_specific/Prentl               !k from mu by Prandtl number
+      u_eta = (nu*dissip)**(1d0/4d0)
+      Rt    = Turene**2/(nu*dissip)
+      non_y = u_eta*length/nu
 
-      dudxi  =  (w(2,i+1,j) +w(2,i+1,j-1)&
-                -w(2,i-1,j) -w(2,i-1,j-1))*0.25d0
-      dvdxi  =  (w(3,i+1,j) +w(3,i+1,j-1)&
-                -w(3,i-1,j) -w(3,i-1,j-1))*0.25d0
-      dTdxi  = (Tdeg(i+1,j)+Tdeg(i+1,j-1)&
-               -Tdeg(i-1,j)-Tdeg(i-1,j-1))*0.25d0
+      f_mu  = (1d0-exp(-non_y/14d0 ))**2*(1d0+(5d0/(Rt**(3d0/4d0)))*exp(-(Rt/200d0)**2))
+      f_eta = (1d0-exp(-non_y/3.1d0))**2*(1d0-                0.3d0*exp(-(Rt/6.5d0)**2))
 
-      dudeta =  w(2,i,j) -w(2,i,j-1)
-      dvdeta =  w(3,i,j) -w(3,i,j-1)
-      dTdeta = Tdeg(i,j)-Tdeg(i,j-1)
+      nu_t     = C_mu*f_mu*Turene**2/dissip
 
-      dudx=dudxi*geojacj(1,1,i,j)+dudeta*geojacj(2,1,i,j)
-      dvdx=dvdxi*geojacj(1,1,i,j)+dvdeta*geojacj(2,1,i,j)
-      dTdx=dTdxi*geojacj(1,1,i,j)+dTdeta*geojacj(2,1,i,j)
-      dudr=dudxi*geojacj(1,2,i,j)+dudeta*geojacj(2,2,i,j)
-      dvdr=dvdxi*geojacj(1,2,i,j)+dvdeta*geojacj(2,2,i,j)
-      dTdr=dTdxi*geojacj(1,2,i,j)+dTdeta*geojacj(2,2,i,j)
+
+      dudxi      =  (w(2,i+1,j) +w(2,i+1,j-1)&
+                    -w(2,i-1,j) -w(2,i-1,j-1))*0.25d0
+      dvdxi      =  (w(3,i+1,j) +w(3,i+1,j-1)&
+                    -w(3,i-1,j) -w(3,i-1,j-1))*0.25d0
+      dTdxi      = (Tdeg(i+1,j)+Tdeg(i+1,j-1)&
+                   -Tdeg(i-1,j)-Tdeg(i-1,j-1))*0.25d0
+      dTurenedxi =  (w(5,i+1,j) +w(5,i+1,j-1)&
+                    -w(5,i-1,j) -w(5,i-1,j-1))*0.25d0
+      ddissipdxi =  (w(6,i+1,j) +w(6,i+1,j-1)&
+                    -w(6,i-1,j) -w(6,i-1,j-1))*0.25d0
+
+
+      dudeta       =  w(2,i,j) -w(2,i,j-1)
+      dvdeta       =  w(3,i,j) -w(3,i,j-1)
+      dTdeta       = Tdeg(i,j)-Tdeg(i,j-1)
+      dTurenedeta  =  w(5,i,j) -w(5,i,j-1)
+      ddissipdeta  =  w(6,i,j) -w(6,i,j-1)
+
+
+      dudx     =     dudxi*geojacj(1,1,i,j)+     dudeta*geojacj(2,1,i,j)
+      dvdx     =     dvdxi*geojacj(1,1,i,j)+     dvdeta*geojacj(2,1,i,j)
+      dTdx     =     dTdxi*geojacj(1,1,i,j)+     dTdeta*geojacj(2,1,i,j)
+      dTurenedx=dTurenedxi*geojacj(1,1,i,j)+dTurenedeta*geojacj(2,1,i,j)
+      ddissipdx=ddissipdxi*geojacj(1,1,i,j)+ddissipdeta*geojacj(2,1,i,j)
+
+      dudr=          dudxi*geojacj(1,2,i,j)+     dudeta*geojacj(2,2,i,j)
+      dvdr=          dvdxi*geojacj(1,2,i,j)+     dvdeta*geojacj(2,2,i,j)
+      dTdr=          dTdxi*geojacj(1,2,i,j)+     dTdeta*geojacj(2,2,i,j)
+      dTurenedr=dTurenedxi*geojacj(1,2,i,j)+dTurenedeta*geojacj(2,2,i,j)
+      ddissipdr=ddissipdxi*geojacj(1,2,i,j)+ddissipdeta*geojacj(2,2,i,j)
 
       !!2 dimentional-plane
       divu=dudx+dvdr
@@ -193,15 +277,41 @@ do j=1,nj
       qx  = -k_heat*dTdx
       qr  = -k_heat*dTdr
 
+
+      temp3 = rho*nu_t
+      !temp4 = 
+      
+      R_stress1 =-2d0/3d0*temp3*divu+2d0*mu*dudx-2d0/3d0*Turene
+      R_stress2 =-2d0/3d0*temp3*divu+2d0*mu*dvdr-2d0/3d0*Turene
+      R_stress3 = temp3*(dudr+dvdx)
+
+      temp0 = nu+nu_t/sigma_k
+      temp1 = nu+nu_t/sigma_eta
+      temp2 = C_eta1*dissip/Turene
+
       Ev(1)=0d0
-      Ev(2)=tau_xx
-      Ev(3)=tau_xr
+      Ev(2)=tau_xx+R_stress1
+      Ev(3)=tau_xr+R_stress3
       Ev(4)=u*tau_xx+v*tau_xr-qx
+      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress1*u+R_stress3*v)
+      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress1*u+R_stress3*v)
 
       Fv(1)=0d0
-      Fv(2)=tau_xr
-      Fv(3)=tau_rr
+      Fv(2)=tau_xr+R_stress3
+      Fv(3)=tau_rr+R_stress2
       Fv(4)=u*tau_xr+v*tau_rr-qr
+      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress2*v+R_stress3*u)
+      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress2*v+R_stress3*u)
+
+      !Ev(1)=0d0
+      !Ev(2)=tau_xx
+      !Ev(3)=tau_xr
+      !Ev(4)=u*tau_xx+v*tau_xr-qx
+
+      !Fv(1)=0d0
+      !Fv(2)=tau_xr
+      !Fv(3)=tau_rr
+      !Fv(4)=u*tau_xr+v*tau_rr-qr
 
       vis_j(:,i,j)=Ev*nvj(1,i,j)+Fv*nvj(2,i,j)
    end do

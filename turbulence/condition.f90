@@ -3,6 +3,7 @@ subroutine set_IC
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    !$omp parallel do shared(w,j), private(i)
    do j = 0, nj
       do i = 0, ni
@@ -10,6 +11,8 @@ subroutine set_IC
             w(2,i,j)=100.d0
             w(3,i,j)=0.d0
             w(4,i,j)=1.d5
+            w(5,i,j)=1.d-10
+            w(6,i,j)=1.d-10
       enddo
    enddo
    !$omp end parallel do
@@ -19,6 +22,7 @@ subroutine set_BC
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    double precision sonic
    !Bottom Ceiling Boundary
    !$omp parallel do shared(w), private(i)
@@ -33,11 +37,27 @@ subroutine set_BC
          w(2,i,0   )=-w(2,i,1   )
          w(3,i,0   )=-w(3,i,1   )
       end if
+      !if(i<201)then
+      !   !w(:,i,0   )= w(:,i,1   )
+      !   !w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
+      !   !w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
+      !   w(:,i,0   )= w(:,i,1   )
+      !   w(2,i,0   )=-w(2,i,1   )
+      !   w(3,i,0   )=-w(3,i,1   )
+      !else
+      !   w(:,i,0   )= w(:,i,1   )
+      !end if
 
       !Ceiling
       w(:,i,nj  )= w(:,i,nj-1)
-      w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
-      w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
+      !w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
+      !w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
+      !w(1,i,nj)=1.d0
+      !w(2,i,nj)=100.d0
+      !w(3,i,nj)=0.d0
+      !w(4,i,nj)=w(4,i,nj-1)
+      !w(5,i,nj)=1.d-10
+      !w(6,i,nj)=1.d-10
    enddo                  
    !$omp end parallel do
    !Left Right Boundary
@@ -48,6 +68,9 @@ subroutine set_BC
       w(2,0  ,j)=100.d0
       w(3,0  ,j)=0.d0
       w(4,0  ,j)=w(4,1,j)
+      w(5,0  ,j)=1.d-10
+      w(6,0  ,j)=1.d-10
+      !w(:,0  ,j)=w(:,1,j)
    enddo
    !$omp end parallel do
    !Right
@@ -63,6 +86,7 @@ subroutine set_w
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
@@ -71,6 +95,8 @@ subroutine set_w
          w(2,i,j)=q(2,i,j)*temp0
          w(3,i,j)=q(3,i,j)*temp0
          w(4,i,j)=(gamma-1.d0)*(q(4,i,j)-0.5d0*w(1,i,j)*(w(2,i,j)**2+w(3,i,j)**2))
+         w(5,i,j)=q(5,i,j)*temp0
+         w(6,i,j)=q(6,i,j)*temp0
          if(w(4,i,j)<0.d0)then
             write(*,*) i, j, t
             write(*,'(4es15.7)') w(:,i,j)
@@ -85,6 +111,7 @@ subroutine set_conservative_variable_vector
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    !$omp parallel do private(i)
    do j=1,nj-1
       do i=1,ni-1
@@ -92,6 +119,8 @@ subroutine set_conservative_variable_vector
          q(2,i,j)=w(2,i,j)*q(1,i,j)
          q(3,i,j)=w(3,i,j)*q(1,i,j)
          q(4,i,j)=w(4,i,j)/(gamma-1.d0)+0.5d0*w(1,i,j)*(w(2,i,j)**2+w(3,i,j)**2)
+         q(5,i,j)=w(5,i,j)*q(1,i,j)
+         q(6,i,j)=w(6,i,j)*q(1,i,j)
       enddo
    enddo
    !$omp end parallel do
@@ -102,6 +131,7 @@ subroutine set_dt
    implicit none
    integer i,j
    double precision rho,u,v,p,un,a,uds
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    temp0=1.d300
    !$omp parallel do reduction(min:temp0) private(i,temp1,temp2,temp3)
    do j=1,nj-1

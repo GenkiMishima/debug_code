@@ -82,6 +82,8 @@ subroutine calc_next_step_imp
    use variable
    implicit none
    integer i,j,m,n
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+   double precision, dimension(4, 0:ni  , 0:nj  ) :: RHS, q_imp
    double precision, dimension(4,0:ni  ,0:nj  )::q_plime
    !$omp parallel do private(i,temp0)
    do j=1,nj-1

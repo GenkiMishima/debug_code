@@ -9,6 +9,7 @@ use variable
    implicit none
    integer i,j
    integer time_now, fl_num
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    integer*4,external::access
 
    call set_breadth
@@ -56,7 +57,7 @@ use variable
    !main loop
    open(34,file='residual.d')
    do time=time_now, time_max
-   !do time=1,2000
+   !do time=1,2
       t=t+dt(1,1)
       call set_dt
       call SLAU_FLUX

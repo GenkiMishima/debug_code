@@ -3,7 +3,9 @@ subroutine make_grid
    use variable
    implicit none
    integer i,j
-   open(55, file='../grid/ideal_bl.x')
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+   double precision, dimension(   1:ni  , 1:nj  ) :: xgrid, rgrid
+   open(55, file='../../grid/ideal_bl.x')
    read(55,*) temp0
    read(55,*) temp1,temp2,temp3
    if(temp0 .ne. 1)then
@@ -47,10 +49,12 @@ subroutine set_breadth
    use variable
    implicit none
    integer i,j
+   double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
    double precision xa, xb, xc, xd
    double precision ra, rb, rc, rd
    double precision area_abd,area_bcd
    double precision temp13,temp14
+   double precision, dimension(4)    :: delta_x, delta_r
    double precision ,dimension(0:ni) :: tmp,tmp23
    temp0=1.d0
    call make_grid

@@ -2,10 +2,10 @@ subroutine MUSCLlimiter(a,b,c,dl,dr)
    use prmtr
    implicit none
 
-   double precision,dimension(4)::a,b,c,dl,dr
-   double precision,dimension(4)::dm, dp, dlim, dright,dleft, theta, Rr, Rl, dlimr, dliml
+   double precision,dimension(6)::a,b,c,dl,dr
+   double precision,dimension(6)::dm, dp, dlim, dright,dleft, theta, Rr, Rl, dlimr, dliml
 
-   double precision,dimension(4)::s
+   double precision,dimension(6)::s
    dm=b-a
    dp=c-b
 

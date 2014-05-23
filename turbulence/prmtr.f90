@@ -10,16 +10,16 @@ module prmtr
    integer         , parameter :: ni=224
    integer         , parameter :: nj=100
    !MUSCL INCREMENT
-   double precision, parameter :: phi=1.d0
+   double precision, parameter :: phi=0.d0
    double precision, parameter :: kappa=1.d0/3.d0
    !Division
-   double precision, parameter :: CFL= 0.4d0
+   double precision, parameter :: CFL= 0.1d0
    !STEP PARAMETER
    integer, parameter :: step_forward =101
    integer, parameter :: step_backward=103
    integer, parameter :: step_height  =181
    !OUTPOT TIME
-   integer, parameter :: out_time = 5000
+   integer, parameter :: out_time = 1
    integer, parameter :: time_max = 500000000
    !RESIDUAL
    double precision, parameter :: epsilon= 1d-2
