@@ -6,7 +6,7 @@ subroutine make_grid
 !   double precision temp0,temp1,temp2,temp3
 !   double precision, dimension(1:ni,1:nj), intent(out) :: xgrid, ygrid
    
-   open(55, file='../../../grid/kusabi.x')
+   open(55, file='../../../grid/naca0012.x')
    read(55,*) temp0
    read(55,*) temp1,temp2,temp3
    if(temp0 .ne. 1)then

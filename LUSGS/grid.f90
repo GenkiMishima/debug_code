@@ -3,7 +3,7 @@ subroutine make_grid
    use variable
    implicit none
    integer i,j
-   open(55, file='../../grid/kusabi.x')
+   open(55, file='../../grid/naca0012.x')
    read(55,*) temp0
    read(55,*) temp1,temp2,temp3
    if(temp0 .ne. 1)then
@@ -231,8 +231,8 @@ subroutine set_vnc_dsc
    double precision,dimension(2)::a,b,c,d
    integer i,j
 
-   do j=1,nj
-      do i=1,ni
+   do j=1,nj-1
+      do i=1,ni-1
          a(1)=(x(i  ,j  )+x(i+1,j  ))*0.5d0
          a(2)=(r(i  ,j  )+r(i+1,j  ))*0.5d0
          b(1)=(x(i+1,j  )+x(i+1,j+1))*0.5d0

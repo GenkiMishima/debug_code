@@ -6,10 +6,10 @@ subroutine set_IC
    !$omp parallel do shared(w,j), private(i)
    do j = 0, nj
       do i = 0, ni
-            w(1,i,j)=5.d0
-            w(2,i,j)=1000.d0
+            w(1,i,j)=1.d0
+            w(2,i,j)=1.d2
             w(3,i,j)=0.d0
-            w(4,i,j)=5.d6
+            w(4,i,j)=1.d5
       enddo
    enddo
    !$omp end parallel do
@@ -24,18 +24,23 @@ subroutine set_BC
    !$omp parallel do shared(w), private(i)
    do i = 1, ni-1
       !Bottom
-      !if(i<55)then
+      if(i<201)then
          w(:,i,0   )= w(:,i,1   )
          w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
          w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
-      !else
-      !   w(:,i,0   )= w(:,i,1   )
-      !   w(2,i,0   )=-w(2,i,1   )
-      !   w(3,i,0   )=-w(3,i,1   )
-      !end if
+      else
+         w(:,i,0   )= w(:,i,1   )
+         !w(2,i,0   )=-w(2,i,1   )
+         !w(3,i,0   )=-w(3,i,1   )
+      end if
 
       !Ceiling
-      w(:,i,nj  )= w(:,i,nj-1)
+      w(1,i,nj  )= 1d0
+      w(2,i,nj  )= 1d2
+      w(3,i,nj  )= 0d0
+      w(4,i,nj  )= w(4,i,nj-1)
+
+      !w(:,i,nj  )= w(:,i,nj-1)
       !w(2,i,nj  )= w(2,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(1,i,nj-1)
       !w(3,i,nj  )= w(3,i,nj-1)-2d0*(w(2,i,nj-1)*nvj(1,i,nj-1)+w(3,i,nj-1)*nvj(2,i,nj-1))*nvj(2,i,nj-1)
    enddo                  
@@ -44,17 +49,19 @@ subroutine set_BC
    !Left
    !$omp parallel do shared(w), private(j)
    do j = 0, nj
-      w(1,0  ,j)=5.d0
-      w(2,0  ,j)=1000.d0
-      w(3,0  ,j)=0.d0
-      w(4,0  ,j)=5.d6!w(4,1,j)
+      w(:,0  ,j)= w(:,1,j)
+
+      !w(1,0  ,j)=5.d0
+      !w(2,0  ,j)=1000.d0
+      !w(3,0  ,j)=0.d0
+      !w(4,0  ,j)=5.d6!w(4,1,j)
    enddo
    !$omp end parallel do
    !Right
    !$omp parallel do shared(w), private(j)
    do j = 0, nj
          w(:,ni  ,j  )= w(:,ni-1,j)
-         !w(4,ni  ,j  )= 1.d5
+         w(4,ni  ,j  )= 1.d5
    enddo
    !$omp end parallel do
 end subroutine set_BC
@@ -74,6 +81,7 @@ subroutine set_w
          if(w(4,i,j)<0.d0)then
             write(*,*) i, j, t
             write(*,'(4es15.7)') w(:,i,j)
+            write(*,'(4es15.7)') q(:,i,j)
             call exit(1)
          endif
       enddo

@@ -21,14 +21,14 @@ subroutine set_jacobian
 
          unA=vnci(1,i,j)*u+vnci(2,i,j)*v
          unB=vncj(1,i,j)*u+vncj(2,i,j)*v
-         nuA=abs(u)+c
-         nuB=abs(v)+c
+         nuA=abs(unA)+c
+         nuB=abs(unB)+c
                             
 
          A(1,1)= 0.d0 
          A(2,1)= 0.5d0*(u**2+v**2)*gamma_tilda-u**2 
          A(3,1)= -u*v
-         A(4,1)= 0.5d0*u*(-2.d0*H+(u**2+v**2)*gamma_tilda)
+         A(4,1)= u*(-H+(u**2+v**2)*0.5d0*gamma_tilda)
 
          A(1,2)= 1.d0
          A(2,2)= u*(3.d0-gamma)
@@ -48,7 +48,7 @@ subroutine set_jacobian
          B(1,1)= 0.d0 
          B(2,1)= -u*v
          B(3,1)= 0.5d0*(u**2+v**2)*gamma_tilda-v**2 
-         B(4,1)= 0.5d0*v*(-2.d0*H+(u**2+v**2)*gamma_tilda)
+         B(4,1)= v*(-H+(u**2+v**2)*0.5d0*gamma_tilda)
 
          B(1,2)= 0.d0
          B(2,2)= v
@@ -87,9 +87,10 @@ subroutine set_jacobian
             Bm(m,m,i,j)=Bm(m,m,i,j)-nuB*0.5d0
          end do
          !set alpha
-         temp0= Vol(i,j)/dt(i,j) + dsci(i,j)*nuA+dscj(i,j)*nuB
+         temp0= area(i,j)/dt(i,j) + dsci(i,j)*nuA+dscj(i,j)*nuB
          alpha(i,j)=1d0/temp0
- 
+         !temp0= 1d0+ dt(i,j)/Vol(i,j)*(dsci(i,j)*nuA+dscj(i,j)*nuB)
+         !alpha(i,j)=1d0/temp0
 
          !alpha(i,j)=1.d0+dt(i,j)/dsi(i,j)*nuA+dt(i,j)/dsj(i,j)*nuB
          !print *,alpha(i,j)
@@ -115,42 +116,59 @@ subroutine calc_next_step_imp
    temp0=10000.d0
    temp_residual2=temp_residual1
    temp1=0.d0
+   !open(66,file='fl.d')
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
-         RHS(:,i,j)=alpha(i,j)*dt(i,j)/area(i,j)*( dsj(i,j)*(X_Numerical(:,i  ,j  )-vis_i(:,i  ,j  ))&
-                                                  -dsj(i,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
-                                                  +dsi(i,j)*(Y_Numerical(:,i  ,j  )-vis_j(:,i  ,j  ))&
-                                                  -dsi(i,j)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
-         !print *,RHS(:,i,j)
+         RHS(:,i,j)=( dsj(i,j)*(X_Numerical(:,i  ,j  )-vis_i(:,i  ,j  ))&
+                     -dsj(i+1,j)*(X_Numerical(:,i+1,j  )-vis_i(:,i+1,j  ))&
+                     +dsi(i,j)*(Y_Numerical(:,i  ,j  )-vis_j(:,i  ,j  ))&
+                     -dsi(i,j+1)*(Y_Numerical(:,i  ,j+1)-vis_j(:,i  ,j+1)))
+         !=flux(:)!dt(i,j)/
+        ! write(66,*)i,j,RHS(4,i,j)
       end do
    end do
    !$omp end parallel do
+!close(66)
+   !print *,alpha(1,2),dt(1,2)/area(1,2)
+   !print *,RHS(:,1,2)
 
    q_plime(:,0,:)=0.d0
    q_plime(:,:,0)=0.d0
+   !open(66,file='qpout.d')
    !$omp parallel do private(i,temp0)
-   do j=1,nj-1
-      do i=1,ni-1
-         q_plime(:,i,j)=RHS(:,i,j)&
-                       +alpha(i,j)*dt(i,j)/dsi(i,j)*matmul(Ap(:,:,i-1,j),q_plime(:,i-1,j))&
-                       +alpha(i,j)*dt(i,j)/dsj(i,j)*matmul(Bp(:,:,i,j-1),q_plime(:,i,j-1))
+   do m=2,ni+nj-2
+      do i=max(1,m-nj-1),min(m-1,ni-1)
+         j=m-i
+         flux(:)= dsci(i-1,j)*matmul(Ap(:,:,i-1,j),q_plime(:,i-1,j))&!dt(i,j)/
+                 +dscj(i,j-1)*matmul(Bp(:,:,i,j-1),q_plime(:,i,j-1))!dt(i,j)/
+         q_plime(:,i,j)=alpha(i,j)*(RHS(:,i,j)+flux(:))
+   !      write(66,*)i,j,(q_plime(4,i,j)-RHS(4,i,j))/alpha(i,j)*dt(i,j)/dsi(i,j)
       end do
    end do
    !$omp end parallel do
+!close(66)
    q_imp(:,ni,:)=0.d0
    q_imp(:,:,nj)=0.d0
+   counter1=1
+   !open(66,file='luout.d')
    !$omp parallel do private(i,m,temp0)
-   do j=1,nj-1
-      n=nj-j
-      do i=1,ni-1
-         m=ni-i
-         q_imp(:,m,n)=q_plime(:,m,n)&
-                     -alpha(m,n)*dt(i,j)/dsi(m,n)*matmul(Ap(:,:,m+1,n),q_imp(:,m+1,n))&
-                     -alpha(m,n)*dt(i,j)/dsj(m,n)*matmul(Bp(:,:,m,n+1),q_imp(:,m,n+1))
+   do m=ni+nj-2,2,-1
+      do i=max(1,m-nj-1),min(m-1,ni-1)
+         j=m-i
+         q_imp(:,i,j)=q_plime(:,i,j)&
+                         -alpha(i,j)*dsci(i+1,j)*matmul(Am(:,:,i+1,j),q_imp(:,i+1,j))&!dt(i,j)/
+                         -alpha(i,j)*dscj(i,j+1)*matmul(Bm(:,:,i,j+1),q_imp(:,i,j+1)) !dt(i,j)/
+         !if(counter1.eq.1) then
+         !print *,m,ni
+         !print *,n,nj
+         !counter1=0
+         !end if
+         !write(66,*)m,n,q_imp(4,m,n)
       end do
    end do
    !$omp end parallel do
+!close(66)
 
    !$omp parallel do private(i,temp0)
    do j=1,nj-1

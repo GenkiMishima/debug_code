@@ -1,7 +1,7 @@
 module variable
 use prmtr
 integer time
-double precision, dimension(6,-1:ni  ,-1:nj  ) :: w    !rho,u,v,P,Tenergy,dissipation factor
+double precision, dimension(6,-1:ni  ,-1:nj  ) :: w,wa,wd   !rho,u,v,P,Tenergy,dissipation factor
 double precision, dimension(6, 1:ni  , 1:nj  ) :: wp,q,qq, Sterm
 double precision, dimension(6, 1:ni  , 1:nj  ) :: X_Flux, X_Numerical,vis_i
 double precision, dimension(6, 1:ni  , 1:nj  ) :: Y_Flux, Y_Numerical,vis_j

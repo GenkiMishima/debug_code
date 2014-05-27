@@ -87,6 +87,7 @@ subroutine set_w
    implicit none
    integer i,j
    double precision temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+   wa=w
    !$omp parallel do private(i,temp0)
    do j=1,nj-1
       do i=1,ni-1
@@ -105,6 +106,7 @@ subroutine set_w
       enddo
    enddo
    !$omp end parallel do
+   wd = w-wa
 end subroutine set_w
 subroutine set_conservative_variable_vector
    use prmtr
@@ -150,3 +152,7 @@ subroutine set_dt
    dt(:,:)=CFL*temp0
    !dt(:,:)=temp0
 end subroutine set_dt
+!subroutine set_separation
+!   use prmtr
+!   use variable
+!end subroutine set_separation

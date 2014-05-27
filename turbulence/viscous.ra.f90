@@ -135,16 +135,16 @@ do j=1,nj-1
       dTurenedxi  =  wa(5,i,j) -wa(5,i-1,j)
       ddissipdxi  =  wa(6,i,j) -wa(6,i-1,j)
 
-      dudeta      =  (w(2,i-1,j+1) +w(2,i,j+1)&
-                     -w(2,i-1,j-1) -w(2,i,j-1))*0.25d0
-      dvdeta      =  (w(3,i-1,j+1) +w(3,i,j+1)&
-                     -w(3,i-1,j-1) -w(3,i,j-1))*0.25d0
+      dudeta      =  (wa(2,i-1,j+1) +wa(2,i,j+1)&
+                     -wa(2,i-1,j-1) -wa(2,i,j-1))*0.25d0
+      dvdeta      =  (wa(3,i-1,j+1) +wa(3,i,j+1)&
+                     -wa(3,i-1,j-1) -wa(3,i,j-1))*0.25d0
       dTdeta      = (Tdeg(i-1,j+1)+Tdeg(i,j+1)&
                     -Tdeg(i-1,j-1)-Tdeg(i,j-1))*0.25d0
-      dTurenedeta =  (w(5,i-1,j+1) +w(5,i,j+1)&
-                     -w(5,i-1,j-1) -w(5,i,j-1))*0.25d0
-      ddissipdeta =  (w(6,i-1,j+1) +w(6,i,j+1)&
-                     -w(6,i-1,j-1) -w(6,i,j-1))*0.25d0
+      dTurenedeta =  (wa(5,i-1,j+1) +wa(5,i,j+1)&
+                     -wa(5,i-1,j-1) -wa(5,i,j-1))*0.25d0
+      ddissipdeta =  (wa(6,i-1,j+1) +wa(6,i,j+1)&
+                     -wa(6,i-1,j-1) -wa(6,i,j-1))*0.25d0
 
       dudx     =     dudxi*geojaci(1,1,i,j)+     dudeta*geojaci(2,1,i,j)
       dvdx     =     dvdxi*geojaci(1,1,i,j)+     dvdeta*geojaci(2,1,i,j)

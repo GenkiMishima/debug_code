@@ -7,13 +7,13 @@ module prmtr
    double precision, parameter :: molar_mass=28.96d0
    double precision, parameter :: gas_specific=gas_constant/molar_mass*1.d3
    !Grid number
-   integer         , parameter :: ni=501
+   integer         , parameter :: ni=251
    integer         , parameter :: nj=101
    !MUSCL INCREMENT
    double precision, parameter :: phi=1.d0
    double precision, parameter :: kappa=1.d0/3.d0
    !Division
-   double precision, parameter :: CFL= 1.3d0
+   double precision, parameter :: CFL= 1.5d0
    !STEP PARAMETER
    integer, parameter :: step_forward =101
    integer, parameter :: step_backward=103
