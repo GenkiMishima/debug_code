@@ -79,10 +79,9 @@ double precision tau_xx,tau_xr,tau_rr
 double precision qx,qr
 double precision divu
 
-double precision D,nu,Rt,nu_t,u_eta,non_y,f_mu,f_eta,R_stress1,R_stress2,R_stress3
+double precision D,nu,Rt,mu_t,nu_t,u_eta,non_y,f_mu,f_eta,R_stress1,R_stress2,R_stress3
 double precision, parameter::Sc=1d0
 double precision, parameter::Prentl=7d-1
-double precision, parameter::length=1d-3
 double precision, parameter::C_mu      = 0.09d0
 double precision, parameter::C_eta1    = 1.5d0
 double precision, parameter::C_eta2    = 1.9d0
@@ -111,11 +110,11 @@ end do
 !$omp             Ev,Fv,i)
 do j=1,nj-1
    do i=1,ni
-      rho    = (wa(1 ,i,j)+wa(1 ,i-1,j))*0.5d0
-      u      = (wa(2 ,i,j)+wa(2 ,i-1,j))*0.5d0
-      v      = (wa(3 ,i,j)+wa(3 ,i-1,j))*0.5d0
-      Turene = (wa(5 ,i,j)+wa(5 ,i-1,j))*0.5d0
-      dissip = (wa(6 ,i,j)+wa(6 ,i-1,j))*0.5d0
+      rho    = (w(1 ,i,j)+w(1 ,i-1,j))*0.5d0
+      u      = (w(2 ,i,j)+w(2 ,i-1,j))*0.5d0
+      v      = (w(3 ,i,j)+w(3 ,i-1,j))*0.5d0
+      Turene = (w(5 ,i,j)+w(5 ,i-1,j))*0.5d0
+      dissip = (w(6 ,i,j)+w(6 ,i-1,j))*0.5d0
       Temper = (Tdeg(i,j)+Tdeg(i-1,j))*0.5d0 !total energy
 
       nu    = mu/rho
@@ -128,12 +127,13 @@ do j=1,nj-1
       f_eta = (1d0-exp(-non_y/3.1d0))**2*(1d0-                0.3d0*exp(-(Rt/6.5d0)**2))
 
       nu_t     = C_mu*f_mu*Turene**2/dissip
+      mu_t     = nu_t*rho
 
-      dudxi       =  wa(2,i,j) -wa(2,i-1,j)
-      dvdxi       =  wa(3,i,j) -wa(3,i-1,j)
+      dudxi       =  w(2,i,j) -w(2,i-1,j)
+      dvdxi       =  w(3,i,j) -w(3,i-1,j)
       dTdxi       = Tdeg(i,j)-Tdeg(i-1,j)
-      dTurenedxi  =  wa(5,i,j) -wa(5,i-1,j)
-      ddissipdxi  =  wa(6,i,j) -wa(6,i-1,j)
+      dTurenedxi  =  w(5,i,j) -w(5,i-1,j)
+      ddissipdxi  =  w(6,i,j) -w(6,i-1,j)
 
       dudeta      =  (w(2,i-1,j+1) +w(2,i,j+1)&
                      -w(2,i-1,j-1) -w(2,i,j-1))*0.25d0
@@ -166,42 +166,46 @@ do j=1,nj-1
       qx  = -k_heat*dTdx
       qr  = -k_heat*dTdr
    
-      temp3 = rho*nu_t
-      !temp4 = 
+      temp3 = (mu+mu_t/sigma_k)*dTurenedx
+      temp4 = (mu+mu_t/sigma_k)*dTurenedr
       
-      R_stress1 =-2d0/3d0*temp3*divu+2d0*mu*dudx-2d0/3d0*Turene
-      R_stress2 =-2d0/3d0*temp3*divu+2d0*mu*dvdr-2d0/3d0*Turene
-      R_stress3 = temp3*(dudr+dvdx)
+      R_stress1 = (2d0/3d0*mu_t*divu+2d0*mu_t*dudx-2d0/3d0*rho*Turene)
+      R_stress2 = (2d0/3d0*mu_t*divu+2d0*mu_t*dvdr-2d0/3d0*rho*Turene)
+      R_stress3 = mu_t*(dudr+dvdx)
 
-      if(i==1.and.j==1)then
-         print *,nu,k_heat,u_eta
-         print *,Rt,non_y,f_mu
-         print *,f_eta,nu_t
-         print *,dissip,Turene
-      end if
+      !if(i==1.and.j==1)then
+      !   print *,nu,k_heat,u_eta
+      !   print *,Rt,non_y,f_mu
+      !   print *,f_eta,nu_t
+      !   print *,dissip,Turene
+      !end if
 
 
-      temp0 = nu+nu_t/sigma_k
-      temp1 = nu+nu_t/sigma_eta
+      temp0 = mu+mu_t/sigma_k
+      temp1 = mu+mu_t/sigma_eta
       temp2 = C_eta1*dissip/Turene
 
       Ev(1)=0d0
       Ev(2)=tau_xx+R_stress1
       Ev(3)=tau_xr+R_stress3
-      Ev(4)=u*tau_xx+v*tau_xr-qx
-      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress1*u+R_stress3*v)
-      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress1*u+R_stress3*v)
+      Ev(4)=u*tau_xx+v*tau_xr-qx+temp3
+      Ev(5)=temp0*dTurenedx
+      Ev(6)=temp1*ddissipdx
 
       Fv(1)=0d0
       Fv(2)=tau_xr+R_stress3
       Fv(3)=tau_rr+R_stress2
-      Fv(4)=u*tau_xr+v*tau_rr-qr
-      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress2*v+R_stress3*u)
-      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress2*v+R_stress3*u)
+      Fv(4)=u*tau_xr+v*tau_rr-qr+temp4
+      Fv(5)=temp0*dTurenedr
+      Fv(6)=temp1*ddissipdr
 
       vis_i(:,i,j)=Ev*nvi(1,i,j)+Fv*nvi(2,i,j)
-      Sterm(5,i,j)=-Turene
-      Sterm(6,i,j)=-C_eta2*f_eta*Turene**2/dissip
+
+      Sterm(5,i,j)=  R_stress1*dudx+R_stress3*dvdx&
+                    +R_stress3*dudr+R_stress2*dvdr-rho*dissip
+      Sterm(6,i,j)= (R_stress1*dudx+R_stress3*dvdx&
+                    +R_stress3*dudr+R_stress2*dvdr)&
+                    *rho*temp2-rho*C_eta2*f_eta*dissip**2/Turene
    end do
 end do
 !$omp end parallel do
@@ -235,6 +239,7 @@ do j=1,nj
       f_eta = (1d0-exp(-non_y/3.1d0))**2*(1d0-                0.3d0*exp(-(Rt/6.5d0)**2))
 
       nu_t     = C_mu*f_mu*Turene**2/dissip
+      mu_t     = nu_t*rho
 
 
       dudxi      =  (w(2,i+1,j) +w(2,i+1,j-1)&
@@ -277,46 +282,42 @@ do j=1,nj
       qx  = -k_heat*dTdx
       qr  = -k_heat*dTdr
 
+      temp3 = (mu+mu_t/sigma_k)*dTurenedx
+      temp4 = (mu+mu_t/sigma_k)*dTurenedr
 
-      temp3 = rho*nu_t
-      !temp4 = 
-      
-      R_stress1 =-2d0/3d0*temp3*divu+2d0*mu*dudx-2d0/3d0*Turene
-      R_stress2 =-2d0/3d0*temp3*divu+2d0*mu*dvdr-2d0/3d0*Turene
-      R_stress3 = temp3*(dudr+dvdx)
+      R_stress1 = (2d0/3d0*mu_t*divu+2d0*mu_t*dudx-2d0/3d0*rho*Turene)
+      R_stress2 = (2d0/3d0*mu_t*divu+2d0*mu_t*dvdr-2d0/3d0*rho*Turene)
+      R_stress3 = mu_t*(dudr+dvdx)
 
-      temp0 = nu+nu_t/sigma_k
-      temp1 = nu+nu_t/sigma_eta
+      temp0 = mu+mu_t/sigma_k
+      temp1 = mu+mu_t/sigma_eta
       temp2 = C_eta1*dissip/Turene
 
       Ev(1)=0d0
       Ev(2)=tau_xx+R_stress1
       Ev(3)=tau_xr+R_stress3
-      Ev(4)=u*tau_xx+v*tau_xr-qx
-      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress1*u+R_stress3*v)
-      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress1*u+R_stress3*v)
+      Ev(4)=u*tau_xx+v*tau_xr-qx+temp3
+      Ev(5)=temp0*dTurenedx
+      Ev(6)=temp1*ddissipdx
 
       Fv(1)=0d0
       Fv(2)=tau_xr+R_stress3
       Fv(3)=tau_rr+R_stress2
-      Fv(4)=u*tau_xr+v*tau_rr-qr
-      Ev(5)=temp0*(dTurenedx+dTurenedr)-      (R_stress2*v+R_stress3*u)
-      Ev(6)=temp1*(ddissipdx+ddissipdr)-temp2*(R_stress2*v+R_stress3*u)
-
-      !Ev(1)=0d0
-      !Ev(2)=tau_xx
-      !Ev(3)=tau_xr
-      !Ev(4)=u*tau_xx+v*tau_xr-qx
-
-      !Fv(1)=0d0
-      !Fv(2)=tau_xr
-      !Fv(3)=tau_rr
-      !Fv(4)=u*tau_xr+v*tau_rr-qr
+      Fv(4)=u*tau_xr+v*tau_rr-qr+temp4
+      Fv(5)=temp0*dTurenedr
+      Fv(6)=temp1*ddissipdr
 
       vis_j(:,i,j)=Ev*nvj(1,i,j)+Fv*nvj(2,i,j)
+
+      Sterm(5,i,j)= Sterm(5,i,j)*nvi(1,i,j) +(R_stress1*dudx+R_stress3*dvdx&
+                                             +R_stress3*dudr+R_stress2*dvdr-rho*dissip)*nvi(2,i,j)
+      Sterm(6,i,j)= Sterm(6,i,j)*nvi(2,i,j)+((R_stress1*dudx+R_stress3*dvdx&
+                                             +R_stress3*dudr+R_stress2*dvdr)&
+                                             *rho*temp2-rho*C_eta2*f_eta*dissip**2/Turene)*nvj(2,i,j) 
    end do
 end do
 !$omp end parallel do
 !}}}
+!Sterm=Sterm*0.5d0
 
 end subroutine set_viscous

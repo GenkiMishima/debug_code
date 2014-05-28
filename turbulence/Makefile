@@ -1,5 +1,5 @@
-compiler=ifort -traceback -check
-#compiler=ifort -xHOST -O3 -static -parallel #-openmp
+#compiler=ifort -traceback -check
+compiler=ifort -xHOST -O3 -static -parallel #-openmp
 compiler1=ifort -xHOST -O3 -static
 
 core = prmtr.o grid.o variable.o condition.o OUTPUT.o muscl.o euler_exp.o scheme.o viscous.o

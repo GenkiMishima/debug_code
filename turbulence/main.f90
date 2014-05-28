@@ -35,8 +35,8 @@ use variable
    !}}}
    call set_geojac
    call set_conservative_variable_vector
+   call set_w
    call set_BC
-   call set_separation
    call set_dt
 
    open(44,file='data/Condition.d')
@@ -64,7 +64,6 @@ use variable
       call SLAU_FLUX
       call set_viscous
       call calc_next_step_exp
-      call set_separation
       call set_w
       call set_BC
       call output

@@ -45,8 +45,8 @@ subroutine output
       open(14, file='data/Mach_'//trim(tmpstring)//'.d')
       open(15, file='data/Vectorx_'//trim(tmpstring)//'.d')
       open(16, file='data/Vectorr_'//trim(tmpstring)//'.d')
-      open(17, file='data/Turb_ene_'//trim(tmpstring)//'.d')
-      open(18, file='data/dissipation'//trim(tmpstring)//'.d')
+      open(17, file='data/Turb_energy_'//trim(tmpstring)//'.d')
+      open(18, file='data/dissipation_'//trim(tmpstring)//'.d')
 !      !$omp parallel do private(i)
       do j=1,nj
          do i=1,ni

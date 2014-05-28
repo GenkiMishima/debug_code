@@ -2,11 +2,19 @@ compiler=ifort -traceback -check
 #compiler=ifort -xHOST -O3 -static -parallel -openmp
 compiler1=ifort -xHOST -O3 -static
 
-core = prmtr.o grid.o variable.o condition.o OUTPUT.o muscl.o lusgs.o euler_exp.o scheme.o viscous.o
+core = n_grid.o prmtr.o grid.o sub_chem.o func_chem.o mod_chem.o variable.o condition.o OUTPUT.o muscl.o lusgs.o euler_exp.o scheme.o viscous.o
 
 all: a.out
 
+n_grid.o: n_grid.f90
+	$(compiler) -c $<
 prmtr.o: prmtr.f90
+	$(compiler) -c $<
+mod_chem.o: mod_chem.f90 n_grid.o
+	$(compiler) -c $<
+func_chem.o: func_chem.f90 mod_chem.o
+	$(compiler) -c $<
+sub_chem.o: sub_chem.f90 mod_chem.o func_chem.o
 	$(compiler) -c $<
 muscl.o: muscl.f90
 	$(compiler) -c $<

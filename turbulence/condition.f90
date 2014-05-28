@@ -11,8 +11,8 @@ subroutine set_IC
             w(2,i,j)=100.d0
             w(3,i,j)=0.d0
             w(4,i,j)=1.d5
-            w(5,i,j)=1.d-10
-            w(6,i,j)=1.d-10
+            w(5,i,j)=1.d0
+            w(6,i,j)=1.d0
       enddo
    enddo
    !$omp end parallel do
@@ -27,6 +27,7 @@ subroutine set_BC
    !Bottom Ceiling Boundary
    !$omp parallel do shared(w), private(i)
    do i = 1, ni-1
+      temp0 = mu/w(1,i,1)
       !Bottom
       if(i<55)then
          w(:,i,0   )= w(:,i,1   )
@@ -36,6 +37,8 @@ subroutine set_BC
          w(:,i,0   )= w(:,i,1   )
          w(2,i,0   )=-w(2,i,1   )
          w(3,i,0   )=-w(3,i,1   )
+         w(5,i,0   )= 0d0
+         w(6,i,0   )= 2d0*temp0*w(5,i,0)/(1d0)**2
       end if
       !if(i<201)then
       !   !w(:,i,0   )= w(:,i,1   )
@@ -68,8 +71,8 @@ subroutine set_BC
       w(2,0  ,j)=100.d0
       w(3,0  ,j)=0.d0
       w(4,0  ,j)=w(4,1,j)
-      w(5,0  ,j)=1.d-10
-      w(6,0  ,j)=1.d-10
+      w(5,0  ,j)=1.d0
+      w(6,0  ,j)=1.d0
       !w(:,0  ,j)=w(:,1,j)
    enddo
    !$omp end parallel do
