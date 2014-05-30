@@ -11,8 +11,8 @@ subroutine set_IC
             w(2,i,j)=100.d0
             w(3,i,j)=0.d0
             w(4,i,j)=1.d5
-            w(5,i,j)=1.d-2
-            w(6,i,j)=1.d-2
+            w(5,i,j)=1.d0
+            w(6,i,j)=1.d0
       enddo
    enddo
    !$omp end parallel do
@@ -29,18 +29,17 @@ subroutine set_BC
    do i = 1, ni-1
       temp0 = mu/w(1,i,1)
       !Bottom
-      if(i<55)then
-         w(:,i,0   )= w(:,i,1   )
-      else
+      !if(i<100)then
+      !   w(:,i,0   )= w(:,i,1   )
+      !   w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
+      !   w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
+      !else
          w(:,i,0   )= w(:,i,1   )
          w(2,i,0   )=-w(2,i,1   )
          w(3,i,0   )=-w(3,i,1   )
          w(5,i,0   )= 0d0
-         w(6,i,0   )= 2d0*temp0*w(5,i,1)/(1d0)**2
-      !   w(:,i,0   )= w(:,i,1   )
-      !   w(2,i,0   )= w(2,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(1,i,   1)
-      !   w(3,i,0   )= w(3,i,1   )-2d0*(w(2,i,   1)*nvj(1,i,   1)+w(3,i,   1)*nvj(2,i,   1))*nvj(2,i,   1)
-      end if
+         w(6,i,0   )= 2d0*temp0*w(5,i,0)/(1d0)**2
+      !end if
 
       !Ceiling
       w(:,i,nj  )= w(:,i,nj-1)
@@ -52,14 +51,14 @@ subroutine set_BC
       !w(4,i,nj)=w(4,i,nj-1)
       !w(5,i,nj)=1.d-10
       !w(6,i,nj)=1.d-10
-      !if(i<89)then
-      !   temp0 =  mu/w(1,i,200)
-      !   w(:,i,199)= w(:,i,200)
-      !   w(2,i,199)=-w(2,i,200)
-      !   w(3,i,199)=-w(3,i,200)
-      !   w(5,i,199)= 0d0
-      !   w(6,i,199)= 2d0*temp0*w(5,i,200)/(1d0)**2
-      !end if
+      if(i<89)then
+         temp0 =  mu/w(1,i,200)
+         w(:,i,199)= w(:,i,200)
+         w(2,i,199)=-w(2,i,200)
+         w(3,i,199)=-w(3,i,200)
+         w(5,i,199)= 0d0
+         w(6,i,199)= 2d0*temp0*w(5,i,200)/(1d0)**2
+      end if
    enddo                  
    !$omp end parallel do
    !Left Right Boundary
@@ -70,24 +69,24 @@ subroutine set_BC
       w(2,0  ,j)=100.d0
       w(3,0  ,j)=0.d0
       w(4,0  ,j)=w(4,1,j)
-      w(5,0  ,j)=1.d-2
-      w(6,0  ,j)=1.d-2
+      w(5,0  ,j)=1.d0
+      w(6,0  ,j)=1.d0
       !w(:,0  ,j)=w(:,1,j)
    !$omp end parallel do
    !Right
    !$omp parallel do shared(w), private(j)
          w(:,ni  ,j  )= w(:,ni-1,j)
          w(4,ni  ,j  )= 1.d5
-   !$omp end parallel do
-   !   if(i<200)then
-   !      temp0 = mu/w(1,i,89)
-   !      w(:,i,88)= w(:,i,89)
-   !      w(2,i,88)=-w(2,i,89)
-   !      w(3,i,88)=-w(3,i,89)
-   !      w(5,i,88)= 0d0
-   !      w(6,i,88)= 2d0*temp0*w(5,i,89)/(1d0)**2
-   !   end if
+      if(j<200)then
+         temp0 = mu/w(1,i,89)
+         w(:,88,j)= w(:,89,j)
+         w(2,88,j)=-w(2,89,j)
+         w(3,88,j)=-w(3,89,j)
+         w(5,88,j)= 0d0
+         w(6,88,j)= 2d0*temp0*w(5,89,j)/(1d0)**2
+      end if
    enddo
+   !$omp end parallel do
 end subroutine set_BC
 subroutine set_w
    use prmtr
@@ -104,8 +103,8 @@ subroutine set_w
          w(2,i,j)=q(2,i,j)*temp0
          w(3,i,j)=q(3,i,j)*temp0
          w(4,i,j)=(gamma-1.d0)*(q(4,i,j)-0.5d0*w(1,i,j)*(w(2,i,j)**2+w(3,i,j)**2))
-         w(5,i,j)=q(5,i,j)!*temp0
-         w(6,i,j)=q(6,i,j)!*temp0
+         w(5,i,j)=q(5,i,j)*temp0
+         w(6,i,j)=q(6,i,j)*temp0
          if(w(4,i,j)<0.d0)then
             write(*,*) i, j, t
             write(*,'(4es15.7)') w(:,i,j)

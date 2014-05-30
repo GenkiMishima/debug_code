@@ -201,11 +201,16 @@ do j=1,nj-1
 
       vis_i(:,i,j)=Ev*nvi(1,i,j)+Fv*nvi(2,i,j)
 
-      Sterm(5,i,j)=  R_stress1*dudx+R_stress3*dvdx&
-                    +R_stress3*dudr+R_stress2*dvdr-rho*dissip
-      Sterm(6,i,j)= (R_stress1*dudx+R_stress3*dvdx&
-                    +R_stress3*dudr+R_stress2*dvdr)&
-                    *rho*temp2-rho*C_eta2*f_eta*dissip**2/Turene
+      temp5 = R_stress1*dudx+R_stress3*dvdx
+      temp6 = R_stress3*dudr+R_stress2*dvdr
+      !temp7 = R_stress1*dudx+R_stress3*dvdx
+      !temp8 = R_stress3*dudr+R_stress2*dvdr
+      temp7 = temp5*nvi(1,i,j)+temp6*nvi(2,i,j)
+      Sterm(5,i,j)=temp7-0.5d0*rho*dissip
+                    
+      Sterm(6,i,j)=temp7*rho*temp2-0.5d0*rho*C_eta2*f_eta*dissip**2/Turene
+              
+              
    end do
 end do
 !$omp end parallel do
@@ -309,11 +314,13 @@ do j=1,nj
 
       vis_j(:,i,j)=Ev*nvj(1,i,j)+Fv*nvj(2,i,j)
 
-      Sterm(5,i,j)= Sterm(5,i,j)*nvi(1,i,j) +(R_stress1*dudx+R_stress3*dvdx&
-                                             +R_stress3*dudr+R_stress2*dvdr-rho*dissip)*nvi(2,i,j)
-      Sterm(6,i,j)= Sterm(6,i,j)*nvi(2,i,j)+((R_stress1*dudx+R_stress3*dvdx&
-                                             +R_stress3*dudr+R_stress2*dvdr)&
-                                             *rho*temp2-rho*C_eta2*f_eta*dissip**2/Turene)*nvj(2,i,j) 
+      temp5 = R_stress1*dudx+R_stress3*dvdx
+      temp6 = R_stress3*dudr+R_stress2*dvdr
+      temp7 = temp5*nvj(1,i,j)+temp6*nvj(2,i,j)
+
+      Sterm(5,i,j)= Sterm(5,i,j)+temp7-0.5d0*rho*dissip
+                                 
+      Sterm(6,i,j)= Sterm(6,i,j)+temp7*rho*temp2-0.5d0*rho*C_eta2*f_eta*dissip**2/Turene
    end do
 end do
 !$omp end parallel do

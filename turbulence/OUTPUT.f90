@@ -47,8 +47,10 @@ subroutine output
       open(16, file='data/Vectorr_'//trim(tmpstring)//'.d')
       open(17, file='data/Turb_energy_'//trim(tmpstring)//'.d')
       open(18, file='data/dissipation_'//trim(tmpstring)//'.d')
+      open(19, file='data/Reynold_'//trim(tmpstring)//'.d')
 !      !$omp parallel do private(i)
       do j=1,nj
+         temp0=-0.1d0
          do i=1,ni
             write(10, *) wp(1,i,j)
             write(11, *) wp(2,i,j)
@@ -59,6 +61,10 @@ subroutine output
             write(16, *) nvj(2,i,j)
             write(17, *) wp(5,i,j)
             write(18, *) wp(6,i,j)
+            if(j==1)then
+               temp0=dsi(i,j)+temp0
+               write(19, *) i,100d0*temp0*wp(1,i,j)/mu
+            end if
             !y(1,j) = dy*0.5d0+dble(j-1)*dy
             !write(10, *) y(1,j), w(1,50,j)
             !write(11, *) y(1,j), w(2,50,j)
@@ -77,6 +83,7 @@ subroutine output
       close(16)
       close(17)
       close(18)
+      close(19)
       write(*, *) tmpString, t, residual
       open(15,file="restart.bin",form="unformatted")
          write(15) w
